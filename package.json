@@ -4,24 +4,24 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "migrate:init": "npx prisma migrate dev --name init",
     "migrate:add": "npx prisma migrate dev --name add-field-or-model",
-    "studio": "prisma studio"
+    "studio": "prisma studio",
+    "vercel-build": "prisma generate && next build"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.0",
     "@types/dompurify": "^3.0.5",
     "dompurify": "^3.3.0",
     "marked": "^17.0.0",
     "next": "16.0.2",
-    "pnpm": "^10.22.0",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },
   "devDependencies": {
-    "@prisma/client": "^6.19.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "24.10.1",
     "@types/react": "19.2.4",

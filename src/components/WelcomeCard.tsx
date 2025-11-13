@@ -81,7 +81,7 @@ const TaskEditor: React.FC<TaskEditorProps> = ({ task, onSave, onCancel }) => {
                     onChange={(e) => setContent(e.target.value)}
                     className="w-full h-48 bg-gray-900/70 border border-slate-600 rounded-lg p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition"
                     aria-label="Task content editor"
-                    placeholder="Describe your task using Markdown...&#10;&#10;| Feature    | Status      |&#10;|------------|-------------|&#10;| Editor     | Implemented |&#10;| Preview    | Live        |"
+                    placeholder={`Describe your task using Markdown...\n\n| Feature    | Status      |\n|------------|-------------|\n| Editor     | Implemented |\n| Preview    | Live        |`}
                 />
             </div>
         </div>
@@ -111,7 +111,10 @@ const EditableCell: React.FC<{ value: string; onSave: (newValue: string) => void
   // Update internal state if the external value prop changes while not editing
   useEffect(() => {
     if (!isEditing) {
-      setText(value);
+      // Use setTimeout to avoid synchronous setState in useEffect
+      setTimeout(() => {
+        setText(value);
+      }, 0);
     }
   }, [value, isEditing]);
 
@@ -190,24 +193,30 @@ const FullscreenTableEditorModal: React.FC<FullscreenTableEditorModalProps> = ({
         const beforeContent = beforeTokens.map((t: any) => t.raw).join('');
         const afterContent = afterTokens.map((t: any) => t.raw).join('');
 
-        setNonTableContent({ before: beforeContent, after: afterContent });
+        // Use setTimeout to avoid synchronous setState in useEffect
+        setTimeout(() => {
+          setNonTableContent({ before: beforeContent, after: afterContent });
 
-        const newHeader = tableToken.header.map((h: any, i: number) => ({
-          id: `col-${Date.now()}-${i}`,
-          text: h.text,
-        }));
-        
-        const newRows = tableToken.rows.map((row: any[], i: number) => ({
-          id: `row-${Date.now()}-${i}`,
-          cells: row.map((cell: any) => cell.text),
-        }));
+          const newHeader = tableToken.header.map((h: any, i: number) => ({
+            id: `col-${Date.now()}-${i}`,
+            text: h.text,
+          }));
+          
+          const newRows = tableToken.rows.map((row: any[], i: number) => ({
+            id: `row-${Date.now()}-${i}`,
+            cells: row.map((cell: any) => cell.text),
+          }));
 
-        setTableData({ header: newHeader, rows: newRows });
+          setTableData({ header: newHeader, rows: newRows });
+        }, 0);
       }
     } catch (e) {
       console.error("Error parsing markdown for table:", e);
     }
-    setIsLoading(false);
+    // Use setTimeout to avoid synchronous setState in useEffect
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 0);
   }, [task.content]);
 
   const handleCellUpdate = (rowIndex: number, colIndex: number, value: string) => {
@@ -319,7 +328,7 @@ const FullscreenTableEditorModal: React.FC<FullscreenTableEditorModalProps> = ({
         {isLoading ? (
           <div className="flex-grow flex items-center justify-center text-gray-400">Loading table...</div>
         ) : !tableData ? (
-          <div className="flex-grow flex items-center justify-center text-red-400 p-8 text-center">Could not parse a valid table from the task's content.</div>
+          <div className="flex-grow flex items-center justify-center text-red-400 p-8 text-center">Could not parse a valid table from the task&apos;s content.</div>
         ) : (
           <div className="flex-grow p-4 overflow-y-auto">
             <div className="overflow-x-auto">
