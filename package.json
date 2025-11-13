@@ -1,0 +1,34 @@
+{
+  "name": "task-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "migrate:init": "npx prisma migrate dev --name init",
+    "migrate:add": "npx prisma migrate dev --name add-field-or-model",
+    "studio": "prisma studio"
+  },
+  "dependencies": {
+    "@types/dompurify": "^3.0.5",
+    "dompurify": "^3.3.0",
+    "marked": "^17.0.0",
+    "next": "16.0.2",
+    "pnpm": "^10.22.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@prisma/client": "^6.19.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.4",
+    "babel-plugin-react-compiler": "1.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.2",
+    "prisma": "^6.19.0",
+    "tailwindcss": "^4"
+  }
+}

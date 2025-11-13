@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Task content styling for markdown-like content */
+.task-content table { 
+  width: 100%; 
+  margin-top: 1em; 
+  border-collapse: collapse; 
+}
+.task-content th, .task-content td { 
+  border: 1px solid #4A5568; 
+  padding: 0.5rem 0.75rem; 
+}
+.task-content th { 
+  background-color: #2D3748; 
+  font-weight: bold; 
+}
+.task-content tr:nth-child(even) { 
+  background-color: #2a3344; 
+}
+.task-content h1, .task-content h2, .task-content h3 { 
+  font-weight: bold; 
+  margin-top: 1em; 
+  margin-bottom: 0.5em; 
+}
+.task-content h1 { 
+  font-size: 1.5em; 
+}
+.task-content h2 { 
+  font-size: 1.25em; 
+}
+.task-content h3 { 
+  font-size: 1.1em; 
+}
+.task-content p { 
+  margin-bottom: 1em; 
+}
+.task-content ul { 
+  list-style-type: disc; 
+  margin-left: 1.5em; 
+}
+.task-content ol { 
+  list-style-type: decimal; 
+  margin-left: 1.5em; 
+}
+.task-content blockquote { 
+  border-left: 4px solid #4A5568; 
+  padding-left: 1em; 
+  color: #A0AEC0; 
+  margin-left: 0; 
+}
+.task-content code { 
+  background-color: #1A202C; 
+  padding: 0.2em 0.4em; 
+  border-radius: 3px; 
+  font-family: monospace; 
+}
+.task-content pre { 
+  background-color: #1A202C; 
+  padding: 1em; 
+  border-radius: 5px; 
+  overflow-x: auto; 
+}
