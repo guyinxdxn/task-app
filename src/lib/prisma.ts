@@ -1,10 +1,8 @@
-// 使用CommonJS导入解决PrismaClient类型检查问题
-import { PrismaClient as PrismaClientType } from '@prisma/client';
-
-const PrismaClient = (require('@prisma/client') as any).PrismaClient as typeof PrismaClientType;
+// 使用类型断言解决PrismaClient导入问题
+const { PrismaClient } = require('@prisma/client') as any;
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: typeof PrismaClient | undefined;
+  prisma: any | undefined;
 };
 
 const prisma = globalForPrisma.prisma ?? new PrismaClient();
