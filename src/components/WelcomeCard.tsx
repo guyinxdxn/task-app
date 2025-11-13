@@ -439,7 +439,8 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, editingTaskId, setEditingTas
   }
   
   const renderTaskContent = (content: string) => {
-    return DOMPurify.sanitize(marked.parse(content || ''));
+    // 使用同步的 marked.parse 方法
+    return DOMPurify.sanitize(marked.parse(content || '', { async: false }));
   };
 
   return (
