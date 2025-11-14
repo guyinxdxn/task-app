@@ -1,34 +1,20 @@
 const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
 
 console.log('Starting Vercel build process...');
 
-// 检查是否是Vercel环境
-const isVercel = process.env.VERCEL === '1';
+// 检查是否配置了Supabase数据库连接
+const hasSupabaseConfig = process.env.DATABASE_URL && process.env.DATABASE_URL.includes('supabase');
 
-if (isVercel) {
-  console.log('Detected Vercel environment');
-  
-  // 在Vercel环境中，创建一个临时的SQLite数据库文件
-  const dbPath = path.join('/tmp', 'dev.db');
-  
-  // 如果数据库文件不存在，创建一个空的
-  if (!fs.existsSync(dbPath)) {
-    console.log('Creating temporary database file at:', dbPath);
-    fs.writeFileSync(dbPath, '');
-  }
-  
-  // 设置环境变量
-  process.env.DATABASE_URL = `file:${dbPath}`;
+if (hasSupabaseConfig) {
+  console.log('Detected Supabase database configuration');
+  console.log('Skipping Prisma generation - using existing client');
+} else {
+  console.log('Warning: No Supabase database configuration detected');
+  console.log('Application may not function properly without database connection');
 }
 
-// 运行Prisma生成
-console.log('Running prisma generate...');
-execSync('prisma generate', { stdio: 'inherit' });
-
-// 运行Next.js构建
+// 直接运行Next.js构建（Prisma Client已在本地生成）
 console.log('Running next build...');
-execSync('next build', { stdio: 'inherit' });
+execSync('npx next build', { stdio: 'inherit' });
 
 console.log('Vercel build completed successfully!');
