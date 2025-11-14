@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import TaskList from '../components/WelcomeCard'; // 被重新利用的组件
@@ -42,13 +42,13 @@ const App: React.FC = () => {
         title: task.title,
         content: task.content || '',
         completed: task.completed,
-        createdAt: task.createdAt
+        createdAt: task.createdAt,
       }));
       setTasks(apiTasks);
       setError(null);
     } catch (err) {
-      console.error("加载任务失败:", err);
-      setError("获取任务时发生错误。");
+      console.error('加载任务失败:', err);
+      setError('获取任务时发生错误。');
     } finally {
       setIsLoading(false);
     }
@@ -64,16 +64,16 @@ const App: React.FC = () => {
 
     const originalTasks = [...tasks];
     const tempId = `temp-${Date.now()}`;
-    
+
     // 乐观更新：立即在界面上显示新任务
     const newTask: Task = {
       id: tempId,
       title: newTaskTitle,
       content: '',
       completed: false,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
-    
+
     setTasks(prev => [newTask, ...prev]);
     setNewTaskTitle(''); // 清空输入框
 
@@ -85,7 +85,7 @@ const App: React.FC = () => {
         },
         body: JSON.stringify({
           title: newTaskTitle,
-          content: ''
+          content: '',
         }),
       });
 
@@ -94,15 +94,14 @@ const App: React.FC = () => {
       }
 
       const createdTask = await response.json();
-      
+
       // 用服务器返回的真实ID替换临时ID
-      setTasks(prev => prev.map(task => 
-        task.id === tempId ? { ...createdTask } : task
-      ));
-      
+      setTasks(prev =>
+        prev.map(task => (task.id === tempId ? { ...createdTask } : task))
+      );
     } catch (err) {
-      console.error("添加任务失败:", err);
-      setError("创建任务时发生错误。");
+      console.error('添加任务失败:', err);
+      setError('创建任务时发生错误。');
       // 回滚到原始状态
       setTasks(originalTasks);
     }
@@ -118,11 +117,11 @@ const App: React.FC = () => {
 
     const originalTasks = [...tasks];
     const newCompletedState = !task.completed;
-    
+
     // 乐观更新：立即在界面上更新任务状态
-    setTasks(prev => prev.map(t => 
-      t.id === id ? { ...t, completed: newCompletedState } : t
-    ));
+    setTasks(prev =>
+      prev.map(t => (t.id === id ? { ...t, completed: newCompletedState } : t))
+    );
 
     try {
       const response = await fetch(`/api/tasks/${id}`, {
@@ -131,7 +130,7 @@ const App: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          completed: newCompletedState
+          completed: newCompletedState,
         }),
       });
 
@@ -140,15 +139,12 @@ const App: React.FC = () => {
       }
 
       const updatedTask = await response.json();
-      
+
       // 用服务器返回的数据更新任务
-      setTasks(prev => prev.map(t => 
-        t.id === id ? { ...updatedTask } : t
-      ));
-      
+      setTasks(prev => prev.map(t => (t.id === id ? { ...updatedTask } : t)));
     } catch (err) {
-      console.error("更新任务失败:", err);
-      setError("更新任务时发生错误。");
+      console.error('更新任务失败:', err);
+      setError('更新任务时发生错误。');
       // 回滚到原始状态
       setTasks(originalTasks);
     }
@@ -160,7 +156,7 @@ const App: React.FC = () => {
    */
   const handleDeleteTask = async (id: string) => {
     const originalTasks = [...tasks];
-    
+
     // 乐观更新：立即从界面上移除任务
     setTasks(prev => prev.filter(task => task.id !== id));
 
@@ -172,30 +168,33 @@ const App: React.FC = () => {
       if (!response.ok) {
         throw new Error('Failed to delete task');
       }
-      
+
       // 删除成功，不需要额外操作
-      
     } catch (err) {
-      console.error("删除任务失败:", err);
-      setError("删除任务时发生错误。");
+      console.error('删除任务失败:', err);
+      setError('删除任务时发生错误。');
       // 回滚到原始状态
       setTasks(originalTasks);
     }
   };
-  
+
   /**
    * 更新任务内容
    * @param id - 任务ID
    * @param title - 新标题
    * @param content - 新内容
    */
-  const handleUpdateTask = async (id: string, title: string, content: string) => {
+  const handleUpdateTask = async (
+    id: string,
+    title: string,
+    content: string
+  ) => {
     const originalTasks = [...tasks];
-    
+
     // 乐观更新：立即在界面上更新任务内容
-    setTasks(prev => prev.map(task => 
-      task.id === id ? { ...task, title, content } : task
-    ));
+    setTasks(prev =>
+      prev.map(task => (task.id === id ? { ...task, title, content } : task))
+    );
     setEditingTaskId(null); // 退出编辑模式
 
     try {
@@ -206,7 +205,7 @@ const App: React.FC = () => {
         },
         body: JSON.stringify({
           title,
-          content
+          content,
         }),
       });
 
@@ -215,15 +214,14 @@ const App: React.FC = () => {
       }
 
       const updatedTask = await response.json();
-      
+
       // 用服务器返回的数据更新任务
-      setTasks(prev => prev.map(task => 
-        task.id === id ? { ...updatedTask } : task
-      ));
-      
+      setTasks(prev =>
+        prev.map(task => (task.id === id ? { ...updatedTask } : task))
+      );
     } catch (err) {
-      console.error("更新任务失败:", err);
-      setError("更新任务时发生错误。");
+      console.error('更新任务失败:', err);
+      setError('更新任务时发生错误。');
       // 回滚到原始状态
       setTasks(originalTasks);
       setEditingTaskId(id); // 保持编辑模式以便用户重试
@@ -235,15 +233,18 @@ const App: React.FC = () => {
       <div className="w-full max-w-4xl mx-auto">
         {/* 页面标题组件 */}
         <Header title="Task Manager" />
-        
+
         <main className="mt-8">
           {/* 添加任务表单 */}
           <div className="bg-gray-800/50 backdrop-blur-sm border border-slate-700 rounded-xl shadow-lg p-6 mb-8">
-            <form onSubmit={handleAddTask} className="flex flex-col sm:flex-row gap-4">
+            <form
+              onSubmit={handleAddTask}
+              className="flex flex-col sm:flex-row gap-4"
+            >
               <input
                 type="text"
                 value={newTaskTitle}
-                onChange={(e) => setNewTaskTitle(e.target.value)}
+                onChange={e => setNewTaskTitle(e.target.value)}
                 placeholder="What needs to be done?"
                 className="flex-grow bg-gray-900/70 border border-slate-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition disabled:opacity-50"
                 aria-label="New task title"
@@ -264,13 +265,17 @@ const App: React.FC = () => {
           {isLoading ? (
             // 加载状态显示
             <div className="bg-gray-800/50 backdrop-blur-sm border border-slate-700 rounded-xl shadow-lg p-8 text-center">
-              <h3 className="text-xl font-bold text-gray-300">Loading Database...</h3>
+              <h3 className="text-xl font-bold text-gray-300">
+                Loading Database...
+              </h3>
               <p className="text-gray-400 mt-2">Getting your tasks ready.</p>
             </div>
           ) : error ? (
             // 错误状态显示
             <div className="bg-red-900/50 border border-red-700 rounded-xl p-6 text-center">
-              <h3 className="text-xl font-bold text-red-300">An Error Occurred</h3>
+              <h3 className="text-xl font-bold text-red-300">
+                An Error Occurred
+              </h3>
               <p className="text-red-400 mt-2">{error}</p>
             </div>
           ) : (
@@ -286,7 +291,7 @@ const App: React.FC = () => {
           )}
         </main>
       </div>
-      
+
       {/* 页面页脚 */}
       <footer className="fixed bottom-4 text-center text-gray-500 text-sm w-full">
         <p>A simple and elegant todo application.</p>

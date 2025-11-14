@@ -45,7 +45,7 @@ src/
 
 ### 环境要求
 
-- Node.js 18+ 
+- Node.js 18+
 - npm 或 pnpm
 
 ### 安装依赖
@@ -59,11 +59,13 @@ pnpm install
 ### 数据库设置
 
 1. 生成 Prisma 客户端：
+
 ```bash
 npx prisma generate
 ```
 
 2. 运行数据库迁移：
+
 ```bash
 npx prisma migrate dev
 ```
@@ -81,16 +83,19 @@ pnpm dev
 ## API 接口
 
 ### 获取所有任务
+
 ```http
 GET /api/tasks
 ```
 
 ### 获取单个任务
+
 ```http
 GET /api/tasks/:id
 ```
 
 ### 创建新任务
+
 ```http
 POST /api/tasks
 Content-Type: application/json
@@ -102,6 +107,7 @@ Content-Type: application/json
 ```
 
 ### 更新任务
+
 ```http
 PUT /api/tasks/:id
 Content-Type: application/json
@@ -114,6 +120,7 @@ Content-Type: application/json
 ```
 
 ### 删除任务
+
 ```http
 DELETE /api/tasks/:id
 ```
@@ -130,6 +137,7 @@ npm start
 ### 环境变量
 
 创建 `.env` 文件：
+
 ```env
 DATABASE_URL="file:./dev.db"
 ```

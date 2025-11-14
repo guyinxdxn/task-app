@@ -1,13 +1,13 @@
-import { defineConfig, env } from "prisma/config";
-import "dotenv/config";
+import { defineConfig, env } from 'prisma/config';
+import 'dotenv/config';
 
 export default defineConfig({
-  schema: "prisma/schema.prisma",
+  schema: 'prisma/schema.prisma',
   migrations: {
-    path: "prisma/migrations",
+    path: 'prisma/migrations',
   },
-  engine: "classic",
+  engine: 'classic',
   datasource: {
-    url: env("DIRECT_URL") || env("DATABASE_URL") || "file:./dev.db",
+    url: env('DIRECT_URL') || env('DATABASE_URL') || 'file:./dev.db',
   },
 });

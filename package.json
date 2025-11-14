@@ -7,6 +7,9 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint:fix": "eslint --fix",
     "migrate:init": "npx prisma migrate dev --name init",
     "migrate:add": "npx prisma migrate dev --name add-field-or-model",
     "studio": "prisma studio",
@@ -28,6 +31,9 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
     "prisma": "^6.19.0",
     "tailwindcss": "^4"
   }

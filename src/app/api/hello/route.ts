@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 
 // 模拟数据库
 let posts = [
-  { id: 1, title: "Hello Next.js", content: "This is your first post." },
+  { id: 1, title: 'Hello Next.js', content: 'This is your first post.' },
 ];
 
 export async function GET() {
