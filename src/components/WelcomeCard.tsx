@@ -549,6 +549,7 @@ interface TaskListProps {
   onToggleComplete: (id: string) => void;
   onDeleteTask: (id: string) => void;
   onUpdateTask: (id: string, title: string, content: string) => void;
+  isMutating: boolean;
 }
 
 const TaskList: React.FC<TaskListProps> = ({
@@ -558,6 +559,7 @@ const TaskList: React.FC<TaskListProps> = ({
   onToggleComplete,
   onDeleteTask,
   onUpdateTask,
+  isMutating,
 }) => {
   const [taskForFullscreen, setTaskForFullscreen] = useState<Task | null>(null);
 
@@ -609,7 +611,7 @@ const TaskList: React.FC<TaskListProps> = ({
         .task-content code { background-color: #1A202C; padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace; }
         .task-content pre { background-color: #1A202C; padding: 1em; border-radius: 5px; overflow-x: auto; }
       `}</style>
-      <div className="bg-gray-800/50 backdrop-blur-sm border border-slate-700 rounded-xl shadow-lg p-4 sm:p-6">
+      <div className={`bg-gray-800/50 backdrop-blur-sm border border-slate-700 rounded-xl shadow-lg p-4 sm:p-6 transition-opacity ${isMutating ? 'opacity-50 pointer-events-none' : ''}`}>
         <ul className="space-y-3">
           {tasks.map(task => {
             const renderedContent = renderTaskContent(task.content);
@@ -636,13 +638,13 @@ const TaskList: React.FC<TaskListProps> = ({
                   <>
                     <div className="flex items-start p-4 w-full min-w-0">
                       <div
-                        className="flex items-center cursor-pointer flex-shrink-0"
-                        onClick={() => onToggleComplete(task.id)}
+                        className={`flex items-center cursor-pointer flex-shrink-0 ${isMutating ? 'pointer-events-none' : ''}`}
+                        onClick={() => !isMutating && onToggleComplete(task.id)}
                         role="button"
                         aria-pressed={task.completed}
                         tabIndex={0}
                         onKeyDown={e =>
-                          e.key === 'Enter' && onToggleComplete(task.id)
+                          !isMutating && e.key === 'Enter' && onToggleComplete(task.id)
                         }
                       >
                         <div
@@ -675,23 +677,26 @@ const TaskList: React.FC<TaskListProps> = ({
                     <div className="p-2 flex-shrink-0 self-center flex gap-1">
                       {hasTable && (
                         <button
-                          onClick={() => setTaskForFullscreen(task)}
-                          className="p-2 rounded-full text-gray-500 hover:bg-purple-500/20 hover:text-purple-400 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          onClick={() => !isMutating && setTaskForFullscreen(task)}
+                          disabled={isMutating}
+                          className="p-2 rounded-full text-gray-500 hover:bg-purple-500/20 hover:text-purple-400 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
                           aria-label={`View and edit table in task: ${task.title}`}
                         >
                           <ExpandIcon className="h-6 w-6" />
                         </button>
                       )}
                       <button
-                        onClick={() => setEditingTaskId(task.id)}
-                        className="p-2 rounded-full text-gray-500 hover:bg-blue-500/20 hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onClick={() => !isMutating && setEditingTaskId(task.id)}
+                        disabled={isMutating}
+                        className="p-2 rounded-full text-gray-500 hover:bg-blue-500/20 hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label={`Edit task: ${task.title}`}
                       >
                         <EditIcon className="h-6 w-6" />
                       </button>
                       <button
-                        onClick={() => onDeleteTask(task.id)}
-                        className="p-2 rounded-full text-gray-500 hover:bg-red-500/20 hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                        onClick={() => !isMutating && onDeleteTask(task.id)}
+                        disabled={isMutating}
+                        className="p-2 rounded-full text-gray-500 hover:bg-red-500/20 hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label={`Delete task: ${task.title}`}
                       >
                         <TrashIcon className="h-6 w-6" />
