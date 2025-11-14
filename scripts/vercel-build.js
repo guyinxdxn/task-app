@@ -2,11 +2,11 @@ const { execSync } = require('child_process');
 
 console.log('Starting Vercel build process...');
 
-// 检查是否配置了Supabase数据库连接
-const hasSupabaseConfig = process.env.DATABASE_URL && process.env.DATABASE_URL.includes('supabase');
+// 检查是否配置了数据库连接
+const hasDatabaseConfig = process.env.DATABASE_URL || process.env.DIRECT_URL;
 
-if (hasSupabaseConfig) {
-  console.log('Detected Supabase database configuration');
+if (hasDatabaseConfig) {
+  console.log('Detected database configuration');
   
   // 在Vercel环境中需要重新生成Prisma Client
   console.log('Generating Prisma Client for Vercel environment...');
@@ -19,7 +19,7 @@ if (hasSupabaseConfig) {
     execSync('npx prisma generate --schema=./prisma/schema.prisma --allow-no-models', { stdio: 'inherit' });
   }
 } else {
-  console.log('Warning: No Supabase database configuration detected');
+  console.log('Warning: No database configuration detected');
   console.log('Attempting to generate Prisma Client without database connection...');
   // 使用schema文件直接生成，避免加载配置文件
   execSync('npx prisma generate --schema=./prisma/schema.prisma --allow-no-models', { stdio: 'inherit' });
