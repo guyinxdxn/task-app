@@ -7,13 +7,23 @@ const hasSupabaseConfig = process.env.DATABASE_URL && process.env.DATABASE_URL.i
 
 if (hasSupabaseConfig) {
   console.log('Detected Supabase database configuration');
-  console.log('Skipping Prisma generation - using existing client');
+  
+  // 在Vercel环境中需要重新生成Prisma Client
+  console.log('Generating Prisma Client for Vercel environment...');
+  try {
+    execSync('npx prisma generate', { stdio: 'inherit' });
+  } catch (error) {
+    console.error('Prisma generation failed, attempting fallback...');
+    // 如果生成失败，尝试使用schema-only模式
+    execSync('npx prisma generate --allow-no-models', { stdio: 'inherit' });
+  }
 } else {
   console.log('Warning: No Supabase database configuration detected');
-  console.log('Application may not function properly without database connection');
+  console.log('Attempting to generate Prisma Client without database connection...');
+  execSync('npx prisma generate --allow-no-models', { stdio: 'inherit' });
 }
 
-// 直接运行Next.js构建（Prisma Client已在本地生成）
+// 运行Next.js构建
 console.log('Running next build...');
 execSync('npx next build', { stdio: 'inherit' });
 
