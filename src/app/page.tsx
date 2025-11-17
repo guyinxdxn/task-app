@@ -2,6 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import TaskList from '../components/WelcomeCard'; // 被重新利用的组件
+import PomodoroTimer from '../components/PomodoroTimer';
+import {
+  PomodoroSettingsDrawer,
+  type MusicSelection,
+  type PomodoroSettings,
+} from '../components/Settings';
 
 // 在这里定义 Task 类型，因为我们不能创建新文件
 export interface Task {
@@ -20,6 +26,19 @@ const App: React.FC = () => {
   const [newTaskTitle, setNewTaskTitle] = useState<string>(''); // 新任务标题输入
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null); // 正在编辑的任务ID
   const [isMutating, setIsMutating] = useState<boolean>(false); // 异步操作进行中状态
+  const [showPomodoro, setShowPomodoro] = useState(false);
+  const [pomodoroTaskTitle, setPomodoroTaskTitle] = useState<string | null>(
+    null
+  );
+  const [pomodoroSettings, setPomodoroSettings] = useState<PomodoroSettings>({
+    pomodoro: 25,
+    shortBreak: 5,
+    longBreak: 15,
+  });
+  const [showPomodoroSettings, setShowPomodoroSettings] = useState(false);
+  const [musicSelection, setMusicSelection] = useState<MusicSelection | null>(
+    null
+  );
 
   // 加载任务的副作用钩子
   useEffect(() => {
@@ -207,7 +226,22 @@ const App: React.FC = () => {
       setIsMutating(false);
     }
   };
+  const handleStartPomodoro = (taskTitle: string) => {
+    setPomodoroTaskTitle(taskTitle);
+    setShowPomodoro(true);
+  };
+  const handleUpdatePomodoroSettings = (newSettings: PomodoroSettings) => {
+    setPomodoroSettings(newSettings);
+    localStorage.setItem('pomodoroSettings', JSON.stringify(newSettings));
+  };
 
+  const handleMusicSelect = (selection: MusicSelection) => {
+    setMusicSelection(selection);
+  };
+
+  const handleMusicClear = () => {
+    setMusicSelection(null);
+  };
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-gray-900 to-slate-800 p-4 sm:p-6 lg:p-8 font-sans">
       <div className="w-full max-w-4xl mx-auto">
@@ -270,10 +304,34 @@ const App: React.FC = () => {
               onDeleteTask={handleDeleteTask}
               onUpdateTask={handleUpdateTask}
               isMutating={isMutating}
+              onStartPomodoro={handleStartPomodoro}
             />
           )}
         </main>
       </div>
+      {showPomodoro && (
+        <PomodoroTimer
+          taskTitle={pomodoroTaskTitle}
+          onClose={() => {
+            setShowPomodoro(false);
+            setPomodoroTaskTitle(null);
+          }}
+          settings={pomodoroSettings}
+          onOpenSettings={() => setShowPomodoroSettings(true)}
+          musicSelection={musicSelection}
+        />
+      )}
+
+      {showPomodoroSettings && (
+        <PomodoroSettingsDrawer
+          currentSettings={pomodoroSettings}
+          onSave={handleUpdatePomodoroSettings}
+          onClose={() => setShowPomodoroSettings(false)}
+          currentMusic={musicSelection}
+          onMusicSelect={handleMusicSelect}
+          onMusicClear={handleMusicClear}
+        />
+      )}
 
       {/* 页面页脚 */}
       <footer className="fixed bottom-4 text-center text-gray-500 text-sm w-full">

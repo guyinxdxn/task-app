@@ -37,6 +37,22 @@ const EditIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
+const ClockIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+);
 const ExpandIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -550,6 +566,7 @@ interface TaskListProps {
   onDeleteTask: (id: string) => void;
   onUpdateTask: (id: string, title: string, content: string) => void;
   isMutating: boolean;
+  onStartPomodoro: (taskTitle: string) => void;
 }
 
 const TaskList: React.FC<TaskListProps> = ({
@@ -560,6 +577,7 @@ const TaskList: React.FC<TaskListProps> = ({
   onDeleteTask,
   onUpdateTask,
   isMutating,
+  onStartPomodoro,
 }) => {
   const [taskForFullscreen, setTaskForFullscreen] = useState<Task | null>(null);
 
@@ -611,7 +629,9 @@ const TaskList: React.FC<TaskListProps> = ({
         .task-content code { background-color: #1A202C; padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace; }
         .task-content pre { background-color: #1A202C; padding: 1em; border-radius: 5px; overflow-x: auto; }
       `}</style>
-      <div className={`bg-gray-800/50 backdrop-blur-sm border border-slate-700 rounded-xl shadow-lg p-4 sm:p-6 transition-opacity ${isMutating ? 'opacity-50 pointer-events-none' : ''}`}>
+      <div
+        className={`bg-gray-800/50 backdrop-blur-sm border border-slate-700 rounded-xl shadow-lg p-4 sm:p-6 transition-opacity ${isMutating ? 'opacity-50 pointer-events-none' : ''}`}
+      >
         <ul className="space-y-3">
           {tasks.map(task => {
             const renderedContent = renderTaskContent(task.content);
@@ -644,7 +664,9 @@ const TaskList: React.FC<TaskListProps> = ({
                         aria-pressed={task.completed}
                         tabIndex={0}
                         onKeyDown={e =>
-                          !isMutating && e.key === 'Enter' && onToggleComplete(task.id)
+                          !isMutating &&
+                          e.key === 'Enter' &&
+                          onToggleComplete(task.id)
                         }
                       >
                         <div
@@ -677,7 +699,9 @@ const TaskList: React.FC<TaskListProps> = ({
                     <div className="p-2 flex-shrink-0 self-center flex gap-1">
                       {hasTable && (
                         <button
-                          onClick={() => !isMutating && setTaskForFullscreen(task)}
+                          onClick={() =>
+                            !isMutating && setTaskForFullscreen(task)
+                          }
                           disabled={isMutating}
                           className="p-2 rounded-full text-gray-500 hover:bg-purple-500/20 hover:text-purple-400 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
                           aria-label={`View and edit table in task: ${task.title}`}
@@ -685,6 +709,14 @@ const TaskList: React.FC<TaskListProps> = ({
                           <ExpandIcon className="h-6 w-6" />
                         </button>
                       )}
+                      <button
+                        onClick={() => onStartPomodoro(task.title)}
+                        className="p-2 text-gray-400 hover:text-cyan-400 transition-colors rounded-full hover:bg-slate-600/50 disabled:opacity-50"
+                        aria-label={`Start pomodoro for ${task.title}`}
+                        disabled={isMutating}
+                      >
+                        <ClockIcon className="w-5 h-5" />
+                      </button>
                       <button
                         onClick={() => !isMutating && setEditingTaskId(task.id)}
                         disabled={isMutating}
