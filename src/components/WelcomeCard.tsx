@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
+import TaskEditModal from './TaskEditModal';
 
 const TrashIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
@@ -107,78 +108,7 @@ export interface Task {
   completed: boolean;
 }
 
-interface TaskEditorProps {
-  task: Task;
-  onSave: (id: string, title: string, content: string) => void;
-  onCancel: () => void;
-}
 
-const TaskEditor: React.FC<TaskEditorProps> = ({ task, onSave, onCancel }) => {
-  const [title, setTitle] = useState(task.title);
-  const [content, setContent] = useState(task.content);
-
-  const handleSave = () => {
-    onSave(task.id, title, content);
-  };
-
-  return (
-    <div className="w-full flex flex-col gap-4 p-4">
-      <div className="flex-shrink-0 flex justify-between items-center border-b border-slate-600 pb-2 mb-2">
-        <h3 className="text-lg font-semibold text-gray-300">Editing Task</h3>
-      </div>
-
-      <div className="flex-grow flex flex-col gap-4 min-h-0">
-        <div className="flex-shrink-0">
-          <label
-            htmlFor="task-title-editor"
-            className="block text-sm font-medium text-gray-400 mb-1"
-          >
-            Title
-          </label>
-          <input
-            id="task-title-editor"
-            type="text"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            className="w-full bg-gray-900/70 border border-slate-600 rounded-lg p-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition"
-            aria-label="Task title editor"
-          />
-        </div>
-        <div className="flex-grow flex flex-col gap-1 min-h-0">
-          <label
-            htmlFor="task-content-editor"
-            className="flex-shrink-0 block text-sm font-medium text-gray-400 mb-1"
-          >
-            Content (Markdown)
-          </label>
-          <textarea
-            id="task-content-editor"
-            value={content}
-            onChange={e => setContent(e.target.value)}
-            className="w-full h-48 bg-gray-900/70 border border-slate-600 rounded-lg p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition"
-            aria-label="Task content editor"
-            placeholder={`Describe your task using Markdown...\n\n| Feature    | Status      |\n|------------|-------------|\n| Editor     | Implemented |\n| Preview    | Live        |`}
-          />
-        </div>
-      </div>
-      <div className="flex-shrink-0 flex justify-end gap-3 pt-4">
-        <button
-          onClick={onCancel}
-          className="px-5 py-2 bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-lg transition"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSave}
-          className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg transition disabled:opacity-50"
-          disabled={!title.trim()}
-        >
-          Save
-        </button>
-      </div>
-    </div>
-  );
-};
 
 const EditableCell: React.FC<{
   value: string;
@@ -560,19 +490,19 @@ const FullscreenTableEditorModal: React.FC<FullscreenTableEditorModalProps> = ({
 
 interface TaskListProps {
   tasks: Task[];
-  editingTaskId: string | null;
-  setEditingTaskId: (id: string | null) => void;
+  editingTask: Task | null;
+  setEditingTask: (task: Task | null) => void;
   onToggleComplete: (id: string) => void;
   onDeleteTask: (id: string) => void;
-  onUpdateTask: (id: string, title: string, content: string) => void;
+  onUpdateTask: (id: string, updates: Partial<Omit<Task, 'id' | 'completed'>>) => void;
   isMutating: boolean;
   onStartPomodoro: (taskTitle: string) => void;
 }
 
 const TaskList: React.FC<TaskListProps> = ({
   tasks,
-  editingTaskId,
-  setEditingTaskId,
+  editingTask,
+  setEditingTask,
   onToggleComplete,
   onDeleteTask,
   onUpdateTask,
@@ -641,115 +571,110 @@ const TaskList: React.FC<TaskListProps> = ({
               <li
                 key={task.id}
                 className={`flex items-start justify-between rounded-lg transition-colors duration-300 ${
-                  editingTaskId === task.id
-                    ? 'bg-slate-800/80'
-                    : task.completed
-                      ? 'bg-green-900/30'
-                      : 'bg-slate-900/50 hover:bg-slate-800/70'
+                  task.completed
+                    ? 'bg-green-900/30'
+                    : 'bg-slate-900/50 hover:bg-slate-800/70'
                 }`}
               >
-                {editingTaskId === task.id ? (
-                  <TaskEditor
-                    task={task}
-                    onSave={onUpdateTask}
-                    onCancel={() => setEditingTaskId(null)}
-                  />
-                ) : (
-                  <>
-                    <div className="flex items-start p-4 w-full min-w-0">
-                      <div
-                        className={`flex items-center cursor-pointer flex-shrink-0 ${isMutating ? 'pointer-events-none' : ''}`}
-                        onClick={() => !isMutating && onToggleComplete(task.id)}
-                        role="button"
-                        aria-pressed={task.completed}
-                        tabIndex={0}
-                        onKeyDown={e =>
-                          !isMutating &&
-                          e.key === 'Enter' &&
-                          onToggleComplete(task.id)
-                        }
-                      >
-                        <div
-                          className={`mt-1 w-6 h-6 rounded-full border-2 flex-shrink-0 mr-4 flex items-center justify-center ${task.completed ? 'border-green-400 bg-green-500' : 'border-gray-500'}`}
+                <div className="flex items-start p-4 w-full min-w-0">
+                  <div
+                    className={`flex items-center cursor-pointer flex-shrink-0 ${isMutating ? 'pointer-events-none' : ''}`}
+                    onClick={() => !isMutating && onToggleComplete(task.id)}
+                    role="button"
+                    aria-pressed={task.completed}
+                    tabIndex={0}
+                    onKeyDown={e =>
+                      !isMutating &&
+                      e.key === 'Enter' &&
+                      onToggleComplete(task.id)
+                    }
+                  >
+                    <div
+                      className={`mt-1 w-6 h-6 rounded-full border-2 flex-shrink-0 mr-4 flex items-center justify-center ${task.completed ? 'border-green-400 bg-green-500' : 'border-gray-500'}`}
+                    >
+                      {task.completed && (
+                        <svg
+                          className="w-4 h-4 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
                         >
-                          {task.completed && (
-                            <svg
-                              className="w-4 h-4 text-white"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="3"
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                      </div>
-                      <p
-                        className={`flex-grow pt-1 break-words truncate ${task.completed ? 'text-gray-500 line-through' : 'text-gray-100'}`}
-                      >
-                        {task.title}
-                      </p>
-                    </div>
-
-                    <div className="p-2 flex-shrink-0 self-center flex gap-1">
-                      {hasTable && (
-                        <button
-                          onClick={() =>
-                            !isMutating && setTaskForFullscreen(task)
-                          }
-                          disabled={isMutating}
-                          className="p-2 rounded-full text-gray-500 hover:bg-purple-500/20 hover:text-purple-400 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                          aria-label={`View and edit table in task: ${task.title}`}
-                        >
-                          <ExpandIcon className="h-6 w-6" />
-                        </button>
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="3"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
                       )}
-                      <button
-                        onClick={() => onStartPomodoro(task.title)}
-                        className="p-2 text-gray-400 hover:text-cyan-400 transition-colors rounded-full hover:bg-slate-600/50 disabled:opacity-50"
-                        aria-label={`Start pomodoro for ${task.title}`}
-                        disabled={isMutating}
-                      >
-                        <ClockIcon className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => !isMutating && setEditingTaskId(task.id)}
-                        disabled={isMutating}
-                        className="p-2 rounded-full text-gray-500 hover:bg-blue-500/20 hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        aria-label={`Edit task: ${task.title}`}
-                      >
-                        <EditIcon className="h-6 w-6" />
-                      </button>
-                      <button
-                        onClick={() => !isMutating && onDeleteTask(task.id)}
-                        disabled={isMutating}
-                        className="p-2 rounded-full text-gray-500 hover:bg-red-500/20 hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        aria-label={`Delete task: ${task.title}`}
-                      >
-                        <TrashIcon className="h-6 w-6" />
-                      </button>
                     </div>
-                  </>
-                )}
+                  </div>
+                  <p
+                    className={`flex-grow pt-1 break-words truncate ${task.completed ? 'text-gray-500 line-through' : 'text-gray-100'}`}
+                  >
+                    {task.title}
+                  </p>
+                </div>
+
+                <div className="p-2 flex-shrink-0 self-center flex gap-1">
+                  {hasTable && (
+                    <button
+                      onClick={() =>
+                        !isMutating && setTaskForFullscreen(task)
+                      }
+                      disabled={isMutating}
+                      className="p-2 rounded-full text-gray-500 hover:bg-purple-500/20 hover:text-purple-400 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label={`View and edit table in task: ${task.title}`}
+                    >
+                      <ExpandIcon className="h-6 w-6" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => onStartPomodoro(task.title)}
+                    className="p-2 text-gray-400 hover:text-cyan-400 transition-colors rounded-full hover:bg-slate-600/50 disabled:opacity-50"
+                    aria-label={`Start pomodoro for ${task.title}`}
+                    disabled={isMutating}
+                  >
+                    <ClockIcon className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => !isMutating && setEditingTask(task)}
+                    disabled={isMutating}
+                    className="p-2 rounded-full text-gray-500 hover:bg-blue-500/20 hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label={`Edit task: ${task.title}`}
+                  >
+                    <EditIcon className="h-6 w-6" />
+                  </button>
+                  <button
+                    onClick={() => !isMutating && onDeleteTask(task.id)}
+                    disabled={isMutating}
+                    className="p-2 rounded-full text-gray-500 hover:bg-red-500/20 hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label={`Delete task: ${task.title}`}
+                  >
+                    <TrashIcon className="h-6 w-6" />
+                  </button>
+                </div>
               </li>
             );
           })}
         </ul>
       </div>
 
+      <TaskEditModal
+        task={editingTask}
+        onSave={onUpdateTask}
+        onClose={() => setEditingTask(null)}
+        isMutating={isMutating}
+      />
+
       {taskForFullscreen && (
         <FullscreenTableEditorModal
           task={taskForFullscreen}
-          onSave={(id, title, content) => {
-            onUpdateTask(id, title, content);
-            setTaskForFullscreen(null);
-          }}
-          onClose={() => setTaskForFullscreen(null)}
+        onSave={(id, title, content) => {
+          onUpdateTask(id, { title, content });
+          setTaskForFullscreen(null);
+        }}
+        onClose={() => setTaskForFullscreen(null)}
         />
       )}
     </>

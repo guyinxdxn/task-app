@@ -1,17 +1,17 @@
 generator client {
-    provider = "prisma-client-js"
-  }
+  provider = "prisma-client-js"
+}
 
-  datasource db {
-    provider  = "postgresql"
-    url       = env("DATABASE_URL")
-    directUrl = env("DIRECT_URL")
-  }
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
 
-  model Task {
-    id        String   @id @default(cuid())
-    title     String
-    content   String   @default("")
-    completed Boolean  @default(false)
-    createdAt DateTime @default(now())
-  }
+model Task {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @default("")
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

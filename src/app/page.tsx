@@ -9,14 +9,16 @@ import {
   type PomodoroSettings,
 } from '../components/Settings';
 
-// 在这里定义 Task 类型，因为我们不能创建新文件
+// 在这里定义 Task 类型
 export interface Task {
   id: string;
   title: string;
   content: string;
   completed: boolean;
   createdAt?: string;
-}
+  repetitionFrequency?: string;
+  goal?: string;
+} // Define the Task type here as we can't create new files
 
 const App: React.FC = () => {
   // 状态管理
@@ -24,7 +26,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null); // 错误信息
   const [tasks, setTasks] = useState<Task[]>([]); // 任务列表
   const [newTaskTitle, setNewTaskTitle] = useState<string>(''); // 新任务标题输入
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null); // 正在编辑的任务ID
+  const [editingTask, setEditingTask] = useState<Task | null>(null); // 正在编辑的任务
   const [isMutating, setIsMutating] = useState<boolean>(false); // 异步操作进行中状态
   const [showPomodoro, setShowPomodoro] = useState(false);
   const [pomodoroTaskTitle, setPomodoroTaskTitle] = useState<string | null>(
@@ -182,13 +184,11 @@ const App: React.FC = () => {
   /**
    * 更新任务内容
    * @param id - 任务ID
-   * @param title - 新标题
-   * @param content - 新内容
+   * @param updates - 任务更新对象
    */
   const handleUpdateTask = async (
     id: string,
-    title: string,
-    content: string
+    updates: Partial<Omit<Task, 'id' | 'completed'>>
   ) => {
     const task = tasks.find(t => t.id === id);
     if (!task) return;
@@ -198,14 +198,11 @@ const App: React.FC = () => {
 
     try {
       const response = await fetch(`/api/tasks/${id}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          title,
-          content,
-        }),
+        body: JSON.stringify(updates),
       });
 
       if (!response.ok) {
@@ -218,7 +215,7 @@ const App: React.FC = () => {
       setTasks(prev => prev.map(t => (t.id === id ? { ...updatedTask } : t)));
 
       // 关闭编辑状态
-      setEditingTaskId(null);
+      setEditingTask(null);
     } catch (err) {
       console.error('更新任务失败:', err);
       setError('更新任务失败，请重试');
@@ -298,8 +295,8 @@ const App: React.FC = () => {
             // 正常状态：显示任务列表
             <TaskList
               tasks={tasks}
-              editingTaskId={editingTaskId}
-              setEditingTaskId={setEditingTaskId}
+              editingTask={editingTask}
+              setEditingTask={setEditingTask}
               onToggleComplete={handleToggleComplete}
               onDeleteTask={handleDeleteTask}
               onUpdateTask={handleUpdateTask}
