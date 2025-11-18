@@ -92,9 +92,7 @@ const TaskEditor: React.FC<TaskEditorProps> = ({
   onRepetitionFrequencyChange,
   isMutating,
 }) => {
-  const [showAdvanced, setShowAdvanced] = useState(
-    !!(repetitionFrequency || goal)
-  );
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleCustomRepetitionChange = (
     e: React.ChangeEvent<HTMLInputElement>

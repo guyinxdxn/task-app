@@ -59,13 +59,25 @@ const App: React.FC = () => {
       }
       const data = await response.json();
       // 将 API 数据转换为 Task 对象数组
-      const apiTasks = data.map((task: any) => ({
-        id: task.id,
-        title: task.title,
-        content: task.content || '',
-        completed: task.completed,
-        createdAt: task.createdAt,
-      }));
+      const apiTasks = data.map((task: any) => {
+        let repetitionFrequency = '';
+        if (task.repeatType === 'daily') {
+          repetitionFrequency = '1';
+        } else if (task.repeatType === 'weekly') {
+          repetitionFrequency = '7';
+        } else if (task.repeatType === 'every_n_days' && task.repeatInterval) {
+          repetitionFrequency = task.repeatInterval.toString();
+        }
+        return {
+          id: task.id,
+          title: task.title,
+          content: task.content || '',
+          completed: task.completed,
+          createdAt: task.createdAt,
+          goal: task.goal,
+          repetitionFrequency,
+        };
+      });
       setTasks(apiTasks);
       setError(null);
     } catch (err) {
@@ -210,11 +222,19 @@ const App: React.FC = () => {
       }
 
       const updatedTask = await response.json();
-
+      // Convert API response to match local Task type
+      let repetitionFrequency = '';
+      if (updatedTask.repeatType === 'daily') {
+        repetitionFrequency = '1';
+      } else if (updatedTask.repeatType === 'weekly') {
+        repetitionFrequency = '7';
+      } else if (updatedTask.repeatType === 'every_n_days' && updatedTask.repeatInterval) {
+        repetitionFrequency = updatedTask.repeatInterval.toString();
+      }
       // 响应式更新：只在请求成功后更新UI
-      setTasks(prev => prev.map(t => (t.id === id ? { ...updatedTask } : t)));
+      setTasks(prev => prev.map(t => (t.id === id ? { ...updatedTask, repetitionFrequency } : t)));
 
-      // 关闭编辑状态
+      // 更新编辑任务状态
       setEditingTask(null);
     } catch (err) {
       console.error('更新任务失败:', err);

@@ -18,14 +18,29 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { title, content } = await req.json();
+    const { title, content, goal, repetitionFrequency } = await req.json();
     if (!title)
       return NextResponse.json({ error: 'Title required' }, { status: 400 });
+
+    let repeatType = 'none';
+    let repeatInterval = null;
+
+    if (repetitionFrequency === '1') {
+      repeatType = 'daily';
+    } else if (repetitionFrequency === '7') {
+      repeatType = 'weekly';
+    } else if (repetitionFrequency) {
+      repeatType = 'every_n_days';
+      repeatInterval = parseInt(repetitionFrequency);
+    }
 
     const task = await prisma.task.create({
       data: {
         title,
         content: content || '',
+        goal,
+        repeatType,
+        repeatInterval,
       },
     });
     return NextResponse.json(task);

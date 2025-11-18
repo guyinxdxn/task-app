@@ -8,10 +8,40 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum Priority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum Status {
+  todo
+  in_progress
+  done
+  blocked
+  canceled
+}
+
+enum RepeatType {
+  none
+  daily
+  weekly
+  every_n_days
+}
+
 model Task {
-  id        String   @id @default(cuid())
-  title     String
-  content   String   @default("")
-  completed Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id            String      @id @default(cuid())
+  title         String
+  content       String      @default("")
+  goal          String?
+  completed     Boolean     @default(false)
+  priority      Priority    @default(medium)
+  estimate      Int?
+  dueDate       DateTime?
+  status        Status      @default(todo)
+  repeatType    RepeatType  @default(none)
+  repeatInterval Int?
+  createdAt     DateTime    @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }

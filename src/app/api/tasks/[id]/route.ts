@@ -31,13 +31,29 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const { title, content, completed } = await req.json();
+    const { title, content, completed, goal, repetitionFrequency } = await req.json();
+    
+    let repeatType = 'none';
+    let repeatInterval = null;
+
+    if (repetitionFrequency === '1') {
+      repeatType = 'daily';
+    } else if (repetitionFrequency === '7') {
+      repeatType = 'weekly';
+    } else if (repetitionFrequency) {
+      repeatType = 'every_n_days';
+      repeatInterval = parseInt(repetitionFrequency);
+    }
+
     const task = await prisma.task.update({
       where: { id },
       data: {
         ...(title !== undefined && { title }),
         ...(content !== undefined && { content }),
         ...(completed !== undefined && { completed }),
+        ...(goal !== undefined && { goal }),
+        repeatType,
+        repeatInterval,
       },
     });
 
@@ -57,14 +73,34 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const { title, content, completed } = await req.json();
+    const { title, content, completed, goal, repetitionFrequency } = await req.json();
+    
+    const updateData: any = {
+      ...(title !== undefined && { title }),
+      ...(content !== undefined && { content }),
+      ...(completed !== undefined && { completed }),
+      ...(goal !== undefined && { goal }),
+    };
+
+    if (repetitionFrequency !== undefined) {
+      if (repetitionFrequency === '') {
+        updateData.repeatType = 'none';
+        updateData.repeatInterval = null;
+      } else if (repetitionFrequency === '1') {
+        updateData.repeatType = 'daily';
+        updateData.repeatInterval = null;
+      } else if (repetitionFrequency === '7') {
+        updateData.repeatType = 'weekly';
+        updateData.repeatInterval = null;
+      } else {
+        updateData.repeatType = 'every_n_days';
+        updateData.repeatInterval = parseInt(repetitionFrequency);
+      }
+    }
+
     const task = await prisma.task.update({
       where: { id },
-      data: {
-        ...(title !== undefined && { title }),
-        ...(content !== undefined && { content }),
-        ...(completed !== undefined && { completed }),
-      },
+      data: updateData,
     });
 
     return NextResponse.json(task);
