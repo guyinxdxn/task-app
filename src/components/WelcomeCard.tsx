@@ -562,7 +562,8 @@ const TaskList: React.FC<TaskListProps> = ({
       <div
         className={`bg-gray-800/50 backdrop-blur-sm border border-slate-700 rounded-xl shadow-lg p-4 sm:p-6 transition-opacity ${isMutating ? 'opacity-50 pointer-events-none' : ''}`}
       >
-        <ul className="space-y-3">
+        <div className="h-[45vh] sm:h-[60vh] overflow-y-auto pr-2 pb-16 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+          <ul className="space-y-3">
           {tasks.map(task => {
             const renderedContent = renderTaskContent(task.content);
             const hasTable = renderedContent.includes('<table>');
@@ -658,6 +659,7 @@ const TaskList: React.FC<TaskListProps> = ({
             );
           })}
         </ul>
+        </div>
       </div>
 
       <TaskEditModal
