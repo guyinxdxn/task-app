@@ -31,6 +31,17 @@ enum RepeatType {
   every_n_days
 }
 
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  tasks Task[]
+}
+
 model Task {
   id             String      @id @default(cuid())
   title          String
@@ -47,4 +58,7 @@ model Task {
   updatedAt      DateTime    @updatedAt
   totalTimeSpent Int         @default(0) // 单位秒
   jack Int         @default(0) // 单位秒
+  
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { withAuth, AuthenticatedRequest } from '@/lib/middleware';
 
-export async function GET(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+const getTask = async (req: AuthenticatedRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
     const { id } = await params;
-    const task = await prisma.task.findUnique({
-      where: { id },
+    const task = await prisma.task.findFirst({
+      where: { 
+        id,
+        userId: req.userId 
+      },
     });
 
     if (!task) {
@@ -23,15 +24,26 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+};
 
-export async function PUT(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const GET = withAuth(getTask);
+
+const updateTask = async (req: AuthenticatedRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
     const { id } = await params;
     const { title, content, completed, goal, repetitionFrequency, totalTimeSpent } = await req.json();
+    
+    // 先检查任务是否存在且属于当前用户
+    const existingTask = await prisma.task.findFirst({
+      where: { 
+        id,
+        userId: req.userId 
+      },
+    });
+
+    if (!existingTask) {
+      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+    }
     
     let repeatType = 'none';
     let repeatInterval = null;
@@ -66,15 +78,26 @@ export async function PUT(
       { status: 500 }
     );
   }
-}
+};
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const PUT = withAuth(updateTask);
+
+const patchTask = async (req: AuthenticatedRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
     const { id } = await params;
     const { title, content, completed, goal, repetitionFrequency, totalTimeSpent } = await req.json();
+    
+    // 先检查任务是否存在且属于当前用户
+    const existingTask = await prisma.task.findFirst({
+      where: { 
+        id,
+        userId: req.userId 
+      },
+    });
+
+    if (!existingTask) {
+      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+    }
     
     const updateData: any = {
       ...(title !== undefined && { title }),
@@ -113,14 +136,26 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
+};
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const PATCH = withAuth(patchTask);
+
+const deleteTask = async (req: AuthenticatedRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
     const { id } = await params;
+    
+    // 先检查任务是否存在且属于当前用户
+    const existingTask = await prisma.task.findFirst({
+      where: { 
+        id,
+        userId: req.userId 
+      },
+    });
+
+    if (!existingTask) {
+      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+    }
+
     await prisma.task.delete({
       where: { id },
     });
@@ -133,4 +168,6 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
+};
+
+export const DELETE = withAuth(deleteTask);

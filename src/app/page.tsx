@@ -3,11 +3,13 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import TaskList from '../components/WelcomeCard'; // 被重新利用的组件
 import PomodoroTimer from '../components/PomodoroTimer';
+import AuthForm from '../components/AuthForm';
 import {
   PomodoroSettingsDrawer,
   type MusicSelection,
   type PomodoroSettings,
 } from '../components/Settings';
+import { useAuth } from '@/contexts/AuthContext';
 
 // 在这里定义 Task 类型
 export interface Task {
@@ -21,6 +23,10 @@ export interface Task {
 } // Define the Task type here as we can't create new files
 
 const App: React.FC = () => {
+  // 认证状态
+  const { user, isLoading: authLoading, logout } = useAuth();
+  const [isLoginMode, setIsLoginMode] = useState(true);
+
   // 状态管理
   const [isLoading, setIsLoading] = useState<boolean>(true); // 加载状态
   const [error, setError] = useState<string | null>(null); // 错误信息
@@ -44,8 +50,12 @@ const App: React.FC = () => {
 
   // 加载任务的副作用钩子
   useEffect(() => {
-    loadTasksFromApi();
-  }, []); // 空依赖数组表示只在组件挂载时运行一次
+    if (user) {
+      loadTasksFromApi();
+    } else {
+      setIsLoading(false);
+    }
+  }, [user]); // 依赖user，当用户登录状态变化时重新加载任务
 
   /**
    * 从 API 加载任务列表
@@ -314,11 +324,33 @@ const App: React.FC = () => {
       setIsMutating(false);
     }
   };
+  // 如果认证还在加载中，显示加载状态
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-slate-800">
+        <div className="text-center">
+          <h3 className="text-xl font-bold text-gray-300">加载中...</h3>
+          <p className="text-gray-400 mt-2">正在检查认证状态</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 如果用户未登录，显示登录/注册界面
+  if (!user) {
+    return (
+      <AuthForm 
+        isLogin={isLoginMode} 
+        onToggleMode={() => setIsLoginMode(!isLoginMode)} 
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-gray-900 to-slate-800 p-4 sm:p-6 lg:p-8 font-sans">
       <div className="w-full max-w-4xl mx-auto">
         {/* 页面标题组件 */}
-        <Header title="Task Manager" />
+        <Header title="Task Manager" user={user} onLogout={logout} />
 
         <main className="mt-8">
           {/* 添加任务表单 */}

@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { withAuth, AuthenticatedRequest } from '@/lib/middleware';
 
-export async function GET() {
+const getTasks = async (req: AuthenticatedRequest) => {
   try {
     const tasks = await prisma.task.findMany({
+      where: { userId: req.userId },
       orderBy: { createdAt: 'desc' },
     });
     return NextResponse.json(tasks);
@@ -14,9 +16,11 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
+};
 
-export async function POST(req: Request) {
+export const GET = withAuth(getTasks);
+
+const createTask = async (req: AuthenticatedRequest) => {
   try {
     const { title, content, goal, repetitionFrequency } = await req.json();
     if (!title)
@@ -41,6 +45,7 @@ export async function POST(req: Request) {
         goal,
         repeatType,
         repeatInterval,
+        userId: req.userId!,
       },
     });
     return NextResponse.json(task);
@@ -51,4 +56,6 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-}
+};
+
+export const POST = withAuth(createTask);
