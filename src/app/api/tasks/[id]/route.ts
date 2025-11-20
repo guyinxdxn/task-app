@@ -31,7 +31,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const { title, content, completed, goal, repetitionFrequency } = await req.json();
+    const { title, content, completed, goal, repetitionFrequency, totalTimeSpent } = await req.json();
     
     let repeatType = 'none';
     let repeatInterval = null;
@@ -52,6 +52,7 @@ export async function PUT(
         ...(content !== undefined && { content }),
         ...(completed !== undefined && { completed }),
         ...(goal !== undefined && { goal }),
+        ...(totalTimeSpent !== undefined && { totalTimeSpent }),
         repeatType,
         repeatInterval,
       },
@@ -73,13 +74,14 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const { title, content, completed, goal, repetitionFrequency } = await req.json();
+    const { title, content, completed, goal, repetitionFrequency, totalTimeSpent } = await req.json();
     
     const updateData: any = {
       ...(title !== undefined && { title }),
       ...(content !== undefined && { content }),
       ...(completed !== undefined && { completed }),
       ...(goal !== undefined && { goal }),
+      ...(totalTimeSpent !== undefined && { totalTimeSpent }),
     };
 
     if (repetitionFrequency !== undefined) {

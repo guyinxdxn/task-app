@@ -140,6 +140,7 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const [showCloseConfirmDialog, setShowCloseConfirmDialog] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isCommitting, setIsCommitting] = useState(false); // 提交状态，防止重复提交
 
   const [musicURL, setMusicURL] = useState<string | null>(null);
   const [isAudioReady, setIsAudioReady] = useState(false);
@@ -422,29 +423,40 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
    * 处理“提交会话”按钮点击
    */
   const handleCommitSession = async () => {
-    if (mode === 'pomodoro' || mode === 'test') {
-      const newCompleted = pomodorosCompleted + 1;
-      setPomodorosCompleted(newCompleted);
-      
-      // 当处于工作模式且有任务标题和updateTaskTime回调时，更新累计时间
-      if (taskTitle && updateTaskTime) {
-        const sessionDuration = mode === 'pomodoro' ? settings.pomodoro * 60 : testTime;
-        try {
-          await updateTaskTime(sessionDuration);
-        } catch (error) {
-          console.error('Failed to update task time:', error);
-        }
-      }
-      
-      if (newCompleted % 4 === 0) {
-        switchMode('longBreak');
-      } else {
-        switchMode('shortBreak');
-      }
-    } else {
-      switchMode(lastWorkMode);
+    // 防止重复提交
+    if (isCommitting) {
+      return;
     }
-    setShowCompletionDialog(false);
+    
+    setIsCommitting(true);
+    
+    try {
+      if (mode === 'pomodoro' || mode === 'test') {
+        const newCompleted = pomodorosCompleted + 1;
+        setPomodorosCompleted(newCompleted);
+        
+        // 当处于工作模式且有任务标题和updateTaskTime回调时，更新累计时间
+        if (taskTitle && updateTaskTime) {
+          const sessionDuration = mode === 'pomodoro' ? settings.pomodoro * 60 : testTime;
+          try {
+            await updateTaskTime(sessionDuration);
+          } catch (error) {
+            console.error('Failed to update task time:', error);
+          }
+        }
+        
+        if (newCompleted % 4 === 0) {
+          switchMode('longBreak');
+        } else {
+          switchMode('shortBreak');
+        }
+      } else {
+        switchMode(lastWorkMode);
+      }
+      setShowCompletionDialog(false);
+    } finally {
+      setIsCommitting(false);
+    }
   };
 
   // =================================================================
@@ -655,9 +667,22 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
             <p className="text-gray-300 mb-8">{completionMessage()}</p>
             <button
               onClick={handleCommitSession}
-              className={`px-8 py-4 text-white font-bold rounded-lg shadow-lg text-lg transition-transform transform hover:scale-105 bg-gradient-to-r ${modeColors[mode]}`}
+              disabled={isCommitting}
+              className={`px-8 py-4 text-white font-bold rounded-lg shadow-lg text-lg transition-transform transform hover:scale-105 bg-gradient-to-r ${modeColors[mode]} ${
+                isCommitting ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
             >
-              Commit Session
+              {isCommitting ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Committing...
+                </span>
+              ) : (
+                'Commit Session'
+              )}
             </button>
           </div>
         )}

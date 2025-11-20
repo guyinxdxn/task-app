@@ -259,6 +259,61 @@ const App: React.FC = () => {
   const handleMusicClear = () => {
     setMusicSelection(null);
   };
+
+  /**
+   * 更新任务累计时间
+   * @param seconds - 要增加的秒数
+   */
+  const updateTaskTime = async (seconds: number) => {
+    if (!pomodoroTaskTitle) return;
+    
+    // 根据任务标题找到对应的任务
+    const task = tasks.find(t => t.title === pomodoroTaskTitle);
+    if (!task) return;
+
+    setIsMutating(true);
+    setError(null);
+
+    try {
+      // 获取当前任务的最新数据，包括当前的totalTimeSpent
+      const response = await fetch(`/api/tasks/${task.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch task data');
+      }
+      const currentTask = await response.json();
+      
+      // 计算新的累计时间
+      const currentTimeSpent = currentTask.totalTimeSpent || 0;
+      const newTotalTimeSpent = currentTimeSpent + seconds;
+
+      // 更新任务的总时间
+      const updateResponse = await fetch(`/api/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          totalTimeSpent: newTotalTimeSpent
+        }),
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error('Failed to update task time');
+      }
+
+      const updatedTask = await updateResponse.json();
+      
+      // 更新本地任务列表
+      setTasks(prev => prev.map(t => 
+        t.id === task.id ? { ...t, totalTimeSpent: newTotalTimeSpent } : t
+      ));
+    } catch (err) {
+      console.error('更新任务时间失败:', err);
+      setError('更新任务时间失败，请重试');
+    } finally {
+      setIsMutating(false);
+    }
+  };
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-gray-900 to-slate-800 p-4 sm:p-6 lg:p-8 font-sans">
       <div className="w-full max-w-4xl mx-auto">
@@ -336,6 +391,7 @@ const App: React.FC = () => {
           settings={pomodoroSettings}
           onOpenSettings={() => setShowPomodoroSettings(true)}
           musicSelection={musicSelection}
+          updateTaskTime={updateTaskTime}
         />
       )}
 
