@@ -13,7 +13,8 @@
     "migrate:init": "npx prisma migrate dev --name init",
     "migrate:add": "npx prisma migrate dev --name add-field-or-model",
     "studio": "prisma studio",
-    "vercel-build": "node scripts/vercel-build.js"
+    "vercel-build": "node scripts/vercel-build.js",
+    "migrate": "node prisma-oneclick.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",

@@ -3,7 +3,7 @@
   "buildCommand": "pnpm run vercel-build",
   "installCommand": "pnpm install",
   "env": {
-    "DATABASE_URL": "postgresql://postgres.jlpoykmdqxksnmmhwwvp:hs0TTtqxHLWasgM6@aws-1-ap-south-1.pooler.supabase.com:5432/postgres",
-    "DIRECT_URL": "postgresql://postgres.jlpoykmdqxksnmmhwwvp:hs0TTtqxHLWasgM6@aws-1-ap-south-1.pooler.supabase.com:5432/postgres"
+    "DATABASE_URL": "postgresql://postgres.jlpoykmdqxksnmmhwwvp:hs0TTtqxHLWasgM6@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true",
+    "DIRECT_URL": "postgresql://postgres.jlpoykmdqxksnmmhwwvp:hs0TTtqxHLWasgM6@aws-1-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require"
   }
 }

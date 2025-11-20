@@ -34,4 +34,5 @@ export interface Task {
   repeatInterval?: number;
   createdAt: string;
   updatedAt: string;
+  totalTimeSpent: number; // 累计计时字段，单位：秒
 }

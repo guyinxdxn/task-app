@@ -108,6 +108,7 @@ interface PomodoroTimerProps {
   settings: PomodoroSettings;
   onOpenSettings?: () => void;
   musicSelection: MusicSelection | null;
+  updateTaskTime?: (seconds: number) => Promise<void>; // 更新任务累计时间的回调函数
 }
 
 // --- 定时器模式类型 ---
@@ -120,6 +121,7 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
   settings,
   onOpenSettings,
   musicSelection,
+  updateTaskTime,
 }) => {
   // =================================================================
   // === 状态管理 (State Management)
@@ -419,10 +421,21 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
   /**
    * 处理“提交会话”按钮点击
    */
-  const handleCommitSession = () => {
+  const handleCommitSession = async () => {
     if (mode === 'pomodoro' || mode === 'test') {
       const newCompleted = pomodorosCompleted + 1;
       setPomodorosCompleted(newCompleted);
+      
+      // 当处于工作模式且有任务标题和updateTaskTime回调时，更新累计时间
+      if (taskTitle && updateTaskTime) {
+        const sessionDuration = mode === 'pomodoro' ? settings.pomodoro * 60 : testTime;
+        try {
+          await updateTaskTime(sessionDuration);
+        } catch (error) {
+          console.error('Failed to update task time:', error);
+        }
+      }
+      
       if (newCompleted % 4 === 0) {
         switchMode('longBreak');
       } else {
