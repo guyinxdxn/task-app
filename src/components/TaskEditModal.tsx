@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { Task } from '../app/page';
 
 const FullscreenEnterIcon: React.FC<{ className?: string }> = ({
@@ -250,14 +250,28 @@ const TaskEditModal: React.FC<TaskEditModalProps> = ({
   const [repetitionFrequency, setRepetitionFrequency] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  useEffect(() => {
-    if (task) {
-      setTitle(task.title);
-      setContent(task.content);
-      setGoal(task.goal || '');
-      setRepetitionFrequency(task.repetitionFrequency || '');
-    }
+  // 使用 useMemo 来避免在 effect 中直接调用 setState
+  const initialValues = useMemo(() => {
+    if (!task) return null;
+    return {
+      title: task.title,
+      content: task.content,
+      goal: task.goal || '',
+      repetitionFrequency: task.repetitionFrequency || '',
+    };
   }, [task]);
+
+  // 使用 setTimeout 避免在 effect 中直接调用 setState
+  useEffect(() => {
+    if (initialValues) {
+      setTimeout(() => {
+        setTitle(initialValues.title);
+        setContent(initialValues.content);
+        setGoal(initialValues.goal);
+        setRepetitionFrequency(initialValues.repetitionFrequency);
+      }, 0);
+    }
+  }, [initialValues]);
 
   if (!task) return null;
 

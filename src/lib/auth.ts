@@ -22,7 +22,10 @@ const hashPassword = async (password: string): Promise<string> => {
 };
 
 // 验证密码
-const verifyPassword = async (password: string, hashedPassword: string): Promise<boolean> => {
+const verifyPassword = async (
+  password: string,
+  hashedPassword: string
+): Promise<boolean> => {
   return await bcrypt.compare(password, hashedPassword);
 };
 
@@ -41,10 +44,14 @@ export const verifyToken = (token: string): { userId: string } | null => {
 };
 
 // 用户注册
-export const registerUser = async (email: string, name: string, password: string): Promise<AuthResponse> => {
+export const registerUser = async (
+  email: string,
+  name: string,
+  password: string
+): Promise<AuthResponse> => {
   // 检查邮箱是否已存在
   const existingUser = await prisma.user.findUnique({
-    where: { email }
+    where: { email },
   });
 
   if (existingUser) {
@@ -59,8 +66,8 @@ export const registerUser = async (email: string, name: string, password: string
     data: {
       email,
       name,
-      password: hashedPassword
-    }
+      password: hashedPassword,
+    },
   });
 
   // 生成token
@@ -70,17 +77,20 @@ export const registerUser = async (email: string, name: string, password: string
     user: {
       id: user.id,
       email: user.email,
-      name: user.name
+      name: user.name,
     },
-    token
+    token,
   };
 };
 
 // 用户登录
-export const loginUser = async (email: string, password: string): Promise<AuthResponse> => {
+export const loginUser = async (
+  email: string,
+  password: string
+): Promise<AuthResponse> => {
   // 查找用户
   const user = await prisma.user.findUnique({
-    where: { email }
+    where: { email },
   });
 
   if (!user) {
@@ -101,9 +111,9 @@ export const loginUser = async (email: string, password: string): Promise<AuthRe
     user: {
       id: user.id,
       email: user.email,
-      name: user.name
+      name: user.name,
     },
-    token
+    token,
   };
 };
 
@@ -114,8 +124,8 @@ export const getCurrentUser = async (userId: string): Promise<User | null> => {
     select: {
       id: true,
       email: true,
-      name: true
-    }
+      name: true,
+    },
   });
 
   return user;

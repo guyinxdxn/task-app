@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware';
+import {
+  errorHandler,
+  formatErrorResponse,
+  ErrorCodes,
+  createError,
+} from '@/lib/error-handler';
 
 const getTasks = async (req: AuthenticatedRequest) => {
   try {
@@ -10,11 +16,11 @@ const getTasks = async (req: AuthenticatedRequest) => {
     });
     return NextResponse.json(tasks);
   } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: 'Failed to fetch tasks' },
-      { status: 500 }
-    );
+    console.error('获取任务列表失败:', err);
+    const appError = errorHandler(err);
+    return NextResponse.json(formatErrorResponse(appError), {
+      status: appError.statusCode,
+    });
   }
 };
 
@@ -23,10 +29,12 @@ export const GET = withAuth(getTasks);
 const createTask = async (req: AuthenticatedRequest) => {
   try {
     const { title, content, goal, repetitionFrequency } = await req.json();
-    if (!title)
-      return NextResponse.json({ error: 'Title required' }, { status: 400 });
 
-    let repeatType = 'none';
+    if (!title) {
+      throw createError(ErrorCodes.VALIDATION_ERROR, '任务标题是必填项', 400);
+    }
+
+    let repeatType: 'none' | 'daily' | 'weekly' | 'every_n_days' = 'none';
     let repeatInterval = null;
 
     if (repetitionFrequency === '1') {
@@ -50,11 +58,11 @@ const createTask = async (req: AuthenticatedRequest) => {
     });
     return NextResponse.json(task);
   } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: 'Failed to create task' },
-      { status: 500 }
-    );
+    console.error('创建任务失败:', err);
+    const appError = errorHandler(err);
+    return NextResponse.json(formatErrorResponse(appError), {
+      status: appError.statusCode,
+    });
   }
 };
 

@@ -1,13 +1,18 @@
 'use client';
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import ErrorToast from './ErrorToast';
+import useErrorHandler from '../hooks/useErrorHandler';
 
 interface AuthFormProps {
   isLogin?: boolean;
   onToggleMode?: () => void;
 }
 
-const AuthForm: React.FC<AuthFormProps> = ({ isLogin = true, onToggleMode }) => {
+const AuthForm: React.FC<AuthFormProps> = ({
+  isLogin = true,
+  onToggleMode,
+}) => {
   const { login, register, isLoading } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
@@ -15,7 +20,9 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin = true, onToggleMode }) => 
     password: '',
     confirmPassword: '',
   });
-  const [error, setError] = useState('');
+
+  // 使用错误处理钩子
+  const { error, handleError, clearError } = useErrorHandler();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -27,26 +34,26 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin = true, onToggleMode }) => 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    clearError();
 
     // 验证表单
     if (!formData.email || !formData.password) {
-      setError('邮箱和密码都是必填项');
+      handleError(new Error('邮箱和密码都是必填项'), '表单验证失败');
       return;
     }
 
     if (!isLogin && !formData.name) {
-      setError('姓名是必填项');
+      handleError(new Error('姓名是必填项'), '表单验证失败');
       return;
     }
 
     if (!isLogin && formData.password !== formData.confirmPassword) {
-      setError('两次输入的密码不一致');
+      handleError(new Error('两次输入的密码不一致'), '表单验证失败');
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('密码长度至少为6位');
+      handleError(new Error('密码长度至少为6位'), '表单验证失败');
       return;
     }
 
@@ -57,7 +64,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin = true, onToggleMode }) => 
         await register(formData.email, formData.name, formData.password);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '操作失败');
+      handleError(err, isLogin ? '登录失败' : '注册失败');
     }
   };
 
@@ -74,12 +81,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin = true, onToggleMode }) => 
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          {error && (
-            <div className="bg-red-900/50 border border-red-700 rounded-lg p-3">
-              <p className="text-red-300 text-sm">{error}</p>
-            </div>
-          )}
-
           <div className="space-y-4">
             {!isLogin && (
               <div>
@@ -156,7 +157,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin = true, onToggleMode }) => 
               disabled={isLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-cyan-600 hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isLoading ? '处理中...' : (isLogin ? '登录' : '注册')}
+              {isLoading ? '处理中...' : isLogin ? '登录' : '注册'}
             </button>
           </div>
 
@@ -170,6 +171,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ isLogin = true, onToggleMode }) => 
             </button>
           </div>
         </form>
+
+        {/* 错误提示组件 */}
+        {error && (
+          <ErrorToast
+            error={error}
+            onClose={clearError}
+          />
+        )}
       </div>
     </div>
   );

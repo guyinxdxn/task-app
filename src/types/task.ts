@@ -1,23 +1,23 @@
 export enum Priority {
-  low = "low",
-  medium = "medium",
-  high = "high",
-  urgent = "urgent",
+  low = 'low',
+  medium = 'medium',
+  high = 'high',
+  urgent = 'urgent',
 }
 
 export enum Status {
-  todo = "todo",
-  in_progress = "in_progress",
-  done = "done",
-  blocked = "blocked",
-  canceled = "canceled",
+  todo = 'todo',
+  in_progress = 'in_progress',
+  done = 'done',
+  blocked = 'blocked',
+  canceled = 'canceled',
 }
 
 export enum RepeatType {
-  none = "none",
-  daily = "daily",
-  weekly = "weekly",
-  every_n_days = "every_n_days",
+  none = 'none',
+  daily = 'daily',
+  weekly = 'weekly',
+  every_n_days = 'every_n_days',
 }
 
 export interface Task {

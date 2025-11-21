@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loginUser } from '@/lib/auth';
+import {
+  errorHandler,
+  formatErrorResponse,
+  ErrorCodes,
+  createError,
+} from '@/lib/error-handler';
 
 export async function POST(request: NextRequest) {
   try {
@@ -7,9 +13,10 @@ export async function POST(request: NextRequest) {
 
     // 验证输入
     if (!email || !password) {
-      return NextResponse.json(
-        { error: '邮箱和密码都是必填项' },
-        { status: 400 }
+      throw createError(
+        ErrorCodes.VALIDATION_ERROR,
+        '邮箱和密码都是必填项',
+        400
       );
     }
 
@@ -19,30 +26,35 @@ export async function POST(request: NextRequest) {
     // 设置HTTP-only cookie
     const response = NextResponse.json({
       user: authResponse.user,
-      message: '登录成功'
+      message: '登录成功',
     });
 
     response.cookies.set('token', authResponse.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 // 7天
+      maxAge: 7 * 24 * 60 * 60, // 7天
     });
 
     return response;
   } catch (error) {
     console.error('登录错误:', error);
-    
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
+
+    // 如果是认证错误，直接创建特定的错误
+    if (error instanceof Error && error.message === '邮箱或密码错误') {
+      const authError = createError(
+        ErrorCodes.AUTHENTICATION_ERROR,
+        '邮箱或密码错误',
+        401
       );
+      return NextResponse.json(formatErrorResponse(authError), {
+        status: authError.statusCode,
+      });
     }
 
-    return NextResponse.json(
-      { error: '登录失败，请稍后重试' },
-      { status: 500 }
-    );
+    const appError = errorHandler(error);
+    return NextResponse.json(formatErrorResponse(appError), {
+      status: appError.statusCode,
+    });
   }
 }

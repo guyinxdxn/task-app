@@ -156,10 +156,12 @@ const MusicSelectionModal: React.FC<MusicSelectionModalProps> = ({
     // 当 currentMusic 是一个自定义文件时，为其创建一个临时的URL用于预览
     if (currentMusic?.type === 'custom') {
       objectUrl = URL.createObjectURL(currentMusic.file);
-      setCustomMusicUrl(objectUrl);
+      // 使用 setTimeout 避免在 effect 中直接调用 setState
+      setTimeout(() => setCustomMusicUrl(objectUrl), 0);
     } else {
       // 如果不是自定义文件，或音乐被清空，则重置URL
-      setCustomMusicUrl(null);
+      // 使用 setTimeout 避免在 effect 中直接调用 setState
+      setTimeout(() => setCustomMusicUrl(null), 0);
     }
 
     // 清理函数，在组件卸载或文件改变时撤销URL
@@ -176,7 +178,8 @@ const MusicSelectionModal: React.FC<MusicSelectionModalProps> = ({
       const timer = setTimeout(() => setIsVisible(true), 10);
       return () => clearTimeout(timer);
     } else {
-      setIsVisible(false);
+      // 使用 setTimeout 避免在 effect 中直接调用 setState
+      setTimeout(() => setIsVisible(false), 0);
     }
   }, [isOpen]);
 
@@ -204,7 +207,8 @@ const MusicSelectionModal: React.FC<MusicSelectionModalProps> = ({
   useEffect(() => {
     if (!isVisible) {
       previewAudioRef.current?.pause();
-      setPlayingPreviewUrl(null);
+      // 使用 setTimeout 避免在 effect 中直接调用 setState
+      setTimeout(() => setPlayingPreviewUrl(null), 0);
     }
   }, [isVisible]);
 

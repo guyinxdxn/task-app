@@ -1,51 +1,70 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware';
+import {
+  errorHandler,
+  formatErrorResponse,
+  ErrorCodes,
+  createError,
+} from '@/lib/error-handler';
 
-const getTask = async (req: AuthenticatedRequest, { params }: { params: Promise<{ id: string }> }) => {
+const getTask = async (
+  req: AuthenticatedRequest,
+  { params }: { params: Promise<{ id: string }> }
+) => {
   try {
     const { id } = await params;
     const task = await prisma.task.findFirst({
-      where: { 
+      where: {
         id,
-        userId: req.userId 
+        userId: req.userId,
       },
     });
 
     if (!task) {
-      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+      throw createError(ErrorCodes.NOT_FOUND, '任务不存在', 404);
     }
 
     return NextResponse.json(task);
   } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: 'Failed to fetch task' },
-      { status: 500 }
-    );
+    console.error('获取任务详情失败:', err);
+    const appError = errorHandler(err);
+    return NextResponse.json(formatErrorResponse(appError), {
+      status: appError.statusCode,
+    });
   }
 };
 
 export const GET = withAuth(getTask);
 
-const updateTask = async (req: AuthenticatedRequest, { params }: { params: Promise<{ id: string }> }) => {
+const updateTask = async (
+  req: AuthenticatedRequest,
+  { params }: { params: Promise<{ id: string }> }
+) => {
   try {
     const { id } = await params;
-    const { title, content, completed, goal, repetitionFrequency, totalTimeSpent } = await req.json();
-    
+    const {
+      title,
+      content,
+      completed,
+      goal,
+      repetitionFrequency,
+      totalTimeSpent,
+    } = await req.json();
+
     // 先检查任务是否存在且属于当前用户
     const existingTask = await prisma.task.findFirst({
-      where: { 
+      where: {
         id,
-        userId: req.userId 
+        userId: req.userId,
       },
     });
 
     if (!existingTask) {
-      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+      throw createError(ErrorCodes.NOT_FOUND, '任务不存在', 404);
     }
-    
-    let repeatType = 'none';
+
+    let repeatType: 'none' | 'daily' | 'weekly' | 'every_n_days' = 'none';
     let repeatInterval = null;
 
     if (repetitionFrequency === '1') {
@@ -72,33 +91,43 @@ const updateTask = async (req: AuthenticatedRequest, { params }: { params: Promi
 
     return NextResponse.json(task);
   } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: 'Failed to update task' },
-      { status: 500 }
-    );
+    console.error('更新任务失败:', err);
+    const appError = errorHandler(err);
+    return NextResponse.json(formatErrorResponse(appError), {
+      status: appError.statusCode,
+    });
   }
 };
 
 export const PUT = withAuth(updateTask);
 
-const patchTask = async (req: AuthenticatedRequest, { params }: { params: Promise<{ id: string }> }) => {
+const patchTask = async (
+  req: AuthenticatedRequest,
+  { params }: { params: Promise<{ id: string }> }
+) => {
   try {
     const { id } = await params;
-    const { title, content, completed, goal, repetitionFrequency, totalTimeSpent } = await req.json();
-    
+    const {
+      title,
+      content,
+      completed,
+      goal,
+      repetitionFrequency,
+      totalTimeSpent,
+    } = await req.json();
+
     // 先检查任务是否存在且属于当前用户
     const existingTask = await prisma.task.findFirst({
-      where: { 
+      where: {
         id,
-        userId: req.userId 
+        userId: req.userId,
       },
     });
 
     if (!existingTask) {
-      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+      throw createError(ErrorCodes.NOT_FOUND, '任务不存在', 404);
     }
-    
+
     const updateData: any = {
       ...(title !== undefined && { title }),
       ...(content !== undefined && { content }),
@@ -130,30 +159,33 @@ const patchTask = async (req: AuthenticatedRequest, { params }: { params: Promis
 
     return NextResponse.json(task);
   } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: 'Failed to update task' },
-      { status: 500 }
-    );
+    console.error('部分更新任务失败:', err);
+    const appError = errorHandler(err);
+    return NextResponse.json(formatErrorResponse(appError), {
+      status: appError.statusCode,
+    });
   }
 };
 
 export const PATCH = withAuth(patchTask);
 
-const deleteTask = async (req: AuthenticatedRequest, { params }: { params: Promise<{ id: string }> }) => {
+const deleteTask = async (
+  req: AuthenticatedRequest,
+  { params }: { params: Promise<{ id: string }> }
+) => {
   try {
     const { id } = await params;
-    
+
     // 先检查任务是否存在且属于当前用户
     const existingTask = await prisma.task.findFirst({
-      where: { 
+      where: {
         id,
-        userId: req.userId 
+        userId: req.userId,
       },
     });
 
     if (!existingTask) {
-      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+      throw createError(ErrorCodes.NOT_FOUND, '任务不存在', 404);
     }
 
     await prisma.task.delete({
@@ -162,11 +194,11 @@ const deleteTask = async (req: AuthenticatedRequest, { params }: { params: Promi
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: 'Failed to delete task' },
-      { status: 500 }
-    );
+    console.error('删除任务失败:', err);
+    const appError = errorHandler(err);
+    return NextResponse.json(formatErrorResponse(appError), {
+      status: appError.statusCode,
+    });
   }
 };
 

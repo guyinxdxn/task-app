@@ -4,12 +4,14 @@ import Header from '../components/Header';
 import TaskList from '../components/WelcomeCard'; // 被重新利用的组件
 import PomodoroTimer from '../components/PomodoroTimer';
 import AuthForm from '../components/AuthForm';
+import ErrorToast from '../components/ErrorToast';
 import {
   PomodoroSettingsDrawer,
   type MusicSelection,
   type PomodoroSettings,
 } from '../components/Settings';
 import { useAuth } from '@/contexts/AuthContext';
+import useErrorHandler from '../hooks/useErrorHandler';
 
 // 在这里定义 Task 类型
 export interface Task {
@@ -29,7 +31,6 @@ const App: React.FC = () => {
 
   // 状态管理
   const [isLoading, setIsLoading] = useState<boolean>(true); // 加载状态
-  const [error, setError] = useState<string | null>(null); // 错误信息
   const [tasks, setTasks] = useState<Task[]>([]); // 任务列表
   const [newTaskTitle, setNewTaskTitle] = useState<string>(''); // 新任务标题输入
   const [editingTask, setEditingTask] = useState<Task | null>(null); // 正在编辑的任务
@@ -48,55 +49,56 @@ const App: React.FC = () => {
     null
   );
 
+  // 使用错误处理钩子
+  const { error, handleError, clearError } = useErrorHandler();
+
   // 加载任务的副作用钩子
   useEffect(() => {
-    if (user) {
-      loadTasksFromApi();
-    } else {
-      setIsLoading(false);
-    }
-  }, [user]); // 依赖user，当用户登录状态变化时重新加载任务
+    const loadTasksFromApi = async () => {
+      if (!user) return;
 
-  /**
-   * 从 API 加载任务列表
-   */
-  const loadTasksFromApi = async () => {
-    try {
       setIsLoading(true);
-      const response = await fetch('/api/tasks');
-      if (!response.ok) {
-        throw new Error('Failed to fetch tasks');
-      }
-      const data = await response.json();
-      // 将 API 数据转换为 Task 对象数组
-      const apiTasks = data.map((task: any) => {
-        let repetitionFrequency = '';
-        if (task.repeatType === 'daily') {
-          repetitionFrequency = '1';
-        } else if (task.repeatType === 'weekly') {
-          repetitionFrequency = '7';
-        } else if (task.repeatType === 'every_n_days' && task.repeatInterval) {
-          repetitionFrequency = task.repeatInterval.toString();
+      clearError();
+
+      try {
+        const response = await fetch('/api/tasks');
+        if (!response.ok) {
+          throw new Error('Failed to load tasks');
         }
-        return {
+        const data = await response.json();
+
+        // 转换API响应以匹配本地Task类型
+        const transformedTasks = data.map((task: any) => ({
           id: task.id,
           title: task.title,
           content: task.content || '',
           completed: task.completed,
           createdAt: task.createdAt,
           goal: task.goal,
-          repetitionFrequency,
-        };
-      });
-      setTasks(apiTasks);
-      setError(null);
-    } catch (err) {
-      console.error('加载任务失败:', err);
-      setError('获取任务时发生错误。');
-    } finally {
+          repetitionFrequency:
+            task.repeatType === 'daily'
+              ? '1'
+              : task.repeatType === 'weekly'
+                ? '7'
+                : task.repeatType === 'every_n_days' && task.repeatInterval
+                  ? task.repeatInterval.toString()
+                  : '',
+        }));
+
+        setTasks(transformedTasks);
+      } catch (err) {
+        handleError(err, '加载任务失败');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (user) {
+      loadTasksFromApi();
+    } else {
       setIsLoading(false);
     }
-  };
+  }, [user, clearError, handleError]);
 
   /**
    * 处理添加新任务
@@ -106,7 +108,7 @@ const App: React.FC = () => {
     if (newTaskTitle.trim() === '') return;
 
     setIsMutating(true);
-    setError(null);
+    clearError();
 
     try {
       const response = await fetch('/api/tasks', {
@@ -131,8 +133,7 @@ const App: React.FC = () => {
       setTasks(prev => [createdTask, ...prev]);
       setNewTaskTitle(''); // 清空输入框
     } catch (err) {
-      console.error('添加任务失败:', err);
-      setError('创建任务时发生错误。');
+      handleError(err, '添加任务失败');
     } finally {
       setIsMutating(false);
     }
@@ -147,7 +148,7 @@ const App: React.FC = () => {
     if (!task) return;
 
     setIsMutating(true);
-    setError(null);
+    clearError();
 
     try {
       const response = await fetch(`/api/tasks/${id}`, {
@@ -165,12 +166,16 @@ const App: React.FC = () => {
       }
 
       const updatedTask = await response.json();
-
       // 响应式更新：只在请求成功后更新UI
-      setTasks(prev => prev.map(t => (t.id === id ? { ...updatedTask } : t)));
+      setTasks(prev =>
+        prev.map(t =>
+          t.id === id
+            ? { ...updatedTask, repetitionFrequency: task.repetitionFrequency }
+            : t
+        )
+      );
     } catch (err) {
-      console.error('更新任务状态失败:', err);
-      setError('更新任务状态失败，请重试');
+      handleError(err, '切换任务状态失败');
     } finally {
       setIsMutating(false);
     }
@@ -178,11 +183,11 @@ const App: React.FC = () => {
 
   /**
    * 删除任务
-   * @param id - 要删除的任务ID
+   * @param id - 任务ID
    */
   const handleDeleteTask = async (id: string) => {
     setIsMutating(true);
-    setError(null);
+    clearError();
 
     try {
       const response = await fetch(`/api/tasks/${id}`, {
@@ -190,14 +195,13 @@ const App: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete task');
+        throw new Error('删除任务失败');
       }
 
       // 响应式更新：只在请求成功后更新UI
-      setTasks(prev => prev.filter(task => task.id !== id));
+      setTasks(prev => prev.filter(t => t.id !== id));
     } catch (err) {
-      console.error('删除任务失败:', err);
-      setError('删除任务时发生错误。');
+      handleError(err, '删除任务失败');
     } finally {
       setIsMutating(false);
     }
@@ -216,7 +220,7 @@ const App: React.FC = () => {
     if (!task) return;
 
     setIsMutating(true);
-    setError(null);
+    clearError();
 
     try {
       const response = await fetch(`/api/tasks/${id}`, {
@@ -238,17 +242,23 @@ const App: React.FC = () => {
         repetitionFrequency = '1';
       } else if (updatedTask.repeatType === 'weekly') {
         repetitionFrequency = '7';
-      } else if (updatedTask.repeatType === 'every_n_days' && updatedTask.repeatInterval) {
+      } else if (
+        updatedTask.repeatType === 'every_n_days' &&
+        updatedTask.repeatInterval
+      ) {
         repetitionFrequency = updatedTask.repeatInterval.toString();
       }
       // 响应式更新：只在请求成功后更新UI
-      setTasks(prev => prev.map(t => (t.id === id ? { ...updatedTask, repetitionFrequency } : t)));
+      setTasks(prev =>
+        prev.map(t =>
+          t.id === id ? { ...updatedTask, repetitionFrequency } : t
+        )
+      );
 
       // 更新编辑任务状态
       setEditingTask(null);
     } catch (err) {
-      console.error('更新任务失败:', err);
-      setError('更新任务失败，请重试');
+      handleError(err, '更新任务失败');
     } finally {
       setIsMutating(false);
     }
@@ -276,13 +286,13 @@ const App: React.FC = () => {
    */
   const updateTaskTime = async (seconds: number) => {
     if (!pomodoroTaskTitle) return;
-    
+
     // 根据任务标题找到对应的任务
     const task = tasks.find(t => t.title === pomodoroTaskTitle);
     if (!task) return;
 
     setIsMutating(true);
-    setError(null);
+    clearError();
 
     try {
       // 获取当前任务的最新数据，包括当前的totalTimeSpent
@@ -291,7 +301,7 @@ const App: React.FC = () => {
         throw new Error('Failed to fetch task data');
       }
       const currentTask = await response.json();
-      
+
       // 计算新的累计时间
       const currentTimeSpent = currentTask.totalTimeSpent || 0;
       const newTotalTimeSpent = currentTimeSpent + seconds;
@@ -303,7 +313,7 @@ const App: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          totalTimeSpent: newTotalTimeSpent
+          totalTimeSpent: newTotalTimeSpent,
         }),
       });
 
@@ -312,14 +322,15 @@ const App: React.FC = () => {
       }
 
       const updatedTask = await updateResponse.json();
-      
+
       // 更新本地任务列表
-      setTasks(prev => prev.map(t => 
-        t.id === task.id ? { ...t, totalTimeSpent: newTotalTimeSpent } : t
-      ));
+      setTasks(prev =>
+        prev.map(t =>
+          t.id === task.id ? { ...t, totalTimeSpent: newTotalTimeSpent } : t
+        )
+      );
     } catch (err) {
-      console.error('更新任务时间失败:', err);
-      setError('更新任务时间失败，请重试');
+      handleError(err, '更新任务时间失败');
     } finally {
       setIsMutating(false);
     }
@@ -339,9 +350,9 @@ const App: React.FC = () => {
   // 如果用户未登录，显示登录/注册界面
   if (!user) {
     return (
-      <AuthForm 
-        isLogin={isLoginMode} 
-        onToggleMode={() => setIsLoginMode(!isLoginMode)} 
+      <AuthForm
+        isLogin={isLoginMode}
+        onToggleMode={() => setIsLoginMode(!isLoginMode)}
       />
     );
   }
@@ -390,14 +401,6 @@ const App: React.FC = () => {
               </h3>
               <p className="text-gray-400 mt-2">Getting your tasks ready.</p>
             </div>
-          ) : error ? (
-            // 错误状态显示
-            <div className="bg-red-900/50 border border-red-700 rounded-xl p-6 text-center">
-              <h3 className="text-xl font-bold text-red-300">
-                An Error Occurred
-              </h3>
-              <p className="text-red-400 mt-2">{error}</p>
-            </div>
           ) : (
             // 正常状态：显示任务列表
             <TaskList
@@ -413,6 +416,15 @@ const App: React.FC = () => {
           )}
         </main>
       </div>
+
+      {/* 错误提示组件 */}
+      {error && (
+        <ErrorToast
+          error={error}
+          onClose={clearError}
+        />
+      )}
+
       {showPomodoro && (
         <PomodoroTimer
           taskTitle={pomodoroTaskTitle}

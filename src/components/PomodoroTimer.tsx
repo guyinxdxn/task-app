@@ -427,24 +427,25 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
     if (isCommitting) {
       return;
     }
-    
+
     setIsCommitting(true);
-    
+
     try {
       if (mode === 'pomodoro' || mode === 'test') {
         const newCompleted = pomodorosCompleted + 1;
         setPomodorosCompleted(newCompleted);
-        
+
         // 当处于工作模式且有任务标题和updateTaskTime回调时，更新累计时间
         if (taskTitle && updateTaskTime) {
-          const sessionDuration = mode === 'pomodoro' ? settings.pomodoro * 60 : testTime;
+          const sessionDuration =
+            mode === 'pomodoro' ? settings.pomodoro * 60 : testTime;
           try {
             await updateTaskTime(sessionDuration);
           } catch (error) {
             console.error('Failed to update task time:', error);
           }
         }
-        
+
         if (newCompleted % 4 === 0) {
           switchMode('longBreak');
         } else {
@@ -472,8 +473,15 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
     else if (mode === 'shortBreak') totalTime = shortBreakTime;
     else if (mode === 'longBreak') totalTime = longBreakTime;
     else totalTime = testTime;
-    if (totalTime === 0) return 0;
-    return ((totalTime - timeLeft) / totalTime) * 100;
+
+    // 确保 totalTime 和 timeLeft 是有效数字
+    if (typeof totalTime !== 'number' || isNaN(totalTime) || totalTime <= 0)
+      return 0;
+    if (typeof timeLeft !== 'number' || isNaN(timeLeft)) return 0;
+
+    const progress = ((totalTime - timeLeft) / totalTime) * 100;
+    // 确保进度值在 0-100 范围内
+    return Math.max(0, Math.min(100, progress));
   };
 
   const modeColors = {
@@ -663,7 +671,9 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
         {/* 完成对话框 (条件渲染) */}
         {showCompletionDialog && (
           <div className="absolute inset-0 bg-slate-800/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center p-8 rounded-xl text-center">
-            <h3 className="text-3xl font-bold text-white mb-4">Time's Up!</h3>
+            <h3 className="text-3xl font-bold text-white mb-4">
+              Time&apos;s Up!
+            </h3>
             <p className="text-gray-300 mb-8">{completionMessage()}</p>
             <button
               onClick={handleCommitSession}
@@ -674,9 +684,25 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
             >
               {isCommitting ? (
                 <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Committing...
                 </span>

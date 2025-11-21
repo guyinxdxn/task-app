@@ -9,7 +9,9 @@ export interface AuthenticatedRequest extends NextRequest {
  * 认证中间件
  * 验证JWT token并设置userId到请求对象中
  */
-export const withAuth = (handler: (req: AuthenticatedRequest, ...args: any[]) => Promise<Response>) => {
+export const withAuth = (
+  handler: (req: AuthenticatedRequest, ...args: any[]) => Promise<Response>
+) => {
   return async (req: NextRequest, ...args: any[]) => {
     try {
       // 从cookie获取token
