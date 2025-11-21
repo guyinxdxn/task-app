@@ -559,58 +559,108 @@ const TaskList: React.FC<TaskListProps> = ({
         .task-content blockquote { border-left: 4px solid #4A5568; padding-left: 1em; color: #A0AEC0; margin-left: 0; }
         .task-content code { background-color: #1A202C; padding: 0.2em 0.4em; border-radius: 3px; font-family: monospace; }
         .task-content pre { background-color: #1A202C; padding: 1em; border-radius: 5px; overflow-x: auto; }
+        
+        /* 任务项动画 */
+        .task-item-enter {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        .task-item-enter-active {
+          opacity: 1;
+          transform: translateY(0);
+          transition: opacity 300ms ease-out, transform 300ms ease-out;
+        }
+        .task-item-exit {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .task-item-exit-active {
+          opacity: 0;
+          transform: translateY(-10px);
+          transition: opacity 200ms ease-in, transform 200ms ease-in;
+        }
+        
+        /* 状态切换动画 */
+        .task-status-transition {
+          transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* 复选框动画 */
+        .task-checkbox {
+          transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .task-checkbox-completed {
+          transform: scale(1.1);
+        }
+        
+        /* 按钮悬停动画 */
+        .task-button {
+          transition: all 200ms ease-in-out;
+        }
+        .task-button:hover {
+          transform: scale(1.05);
+        }
+        
+        /* 任务项滑入动画 */
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        /* 列表容器动画 */
+        .task-list-container {
+          transition: all 0.3s ease-in-out;
+        }
       `}</style>
       <div
-        className={`bg-gray-800/50 backdrop-blur-sm border border-slate-700 rounded-xl shadow-lg p-4 sm:p-6 transition-opacity ${isMutating ? 'opacity-50 pointer-events-none' : ''}`}
+        className={`bg-gray-800/50 backdrop-blur-sm border border-slate-700 rounded-xl shadow-lg p-4 sm:p-6 transition-all duration-300 ${isMutating ? 'opacity-50 pointer-events-none' : ''}`}
       >
-        <div className="h-[45vh] sm:h-[60vh] overflow-y-auto pr-2 pb-16 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+        <div className="h-[45vh] sm:h-[60vh] overflow-y-auto pr-2 pb-16 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent task-list-container">
           <ul className="space-y-3">
-            {tasks.map(task => {
+            {tasks.map((task, index) => {
               const renderedContent = renderTaskContent(task.content);
               const hasTable = renderedContent.includes('<table>');
 
               return (
                 <li
                   key={task.id}
-                  className={`flex items-start justify-between rounded-lg transition-colors duration-300 ${
+                  className={`flex items-start justify-between rounded-lg task-status-transition ${
                     task.completed
-                      ? 'bg-green-900/30'
-                      : 'bg-slate-900/50 hover:bg-slate-800/70'
+                      ? 'bg-green-900/30 border-l-4 border-green-500'
+                      : 'bg-slate-900/50 border-l-4 border-slate-600 hover:bg-slate-800/70'
                   }`}
+                  style={{
+                    animation: `slideIn 0.5s ease-out ${index * 50}ms forwards`
+                  }}
                 >
                   <div className="flex items-start p-4 w-full min-w-0">
-                    <div
-                      className={`flex items-center cursor-pointer flex-shrink-0 ${isMutating ? 'pointer-events-none' : ''}`}
+                    <button
                       onClick={() => !isMutating && onToggleComplete(task.id)}
-                      role="button"
-                      aria-pressed={task.completed}
-                      tabIndex={0}
-                      onKeyDown={e =>
-                        !isMutating &&
-                        e.key === 'Enter' &&
-                        onToggleComplete(task.id)
-                      }
+                      className={`flex-shrink-0 mt-1 w-6 h-6 rounded-full border-2 mr-4 flex items-center justify-center task-checkbox ${task.completed ? 'border-green-400 bg-green-500 task-checkbox-completed' : 'border-gray-500'}`}
+                      disabled={isMutating}
                     >
-                      <div
-                        className={`mt-1 w-6 h-6 rounded-full border-2 flex-shrink-0 mr-4 flex items-center justify-center ${task.completed ? 'border-green-400 bg-green-500' : 'border-gray-500'}`}
-                      >
-                        {task.completed && (
-                          <svg
-                            className="w-4 h-4 text-white"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="3"
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        )}
-                      </div>
-                    </div>
+                      {task.completed && (
+                        <svg
+                          className="w-4 h-4 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="3"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )}
+                    </button>
                     <p
                       className={`flex-grow pt-1 break-words truncate ${task.completed ? 'text-gray-500 line-through' : 'text-gray-100'}`}
                     >
@@ -650,7 +700,7 @@ const TaskList: React.FC<TaskListProps> = ({
                     <button
                       onClick={() => !isMutating && onDeleteTask(task.id)}
                       disabled={isMutating}
-                      className="p-2 rounded-full text-gray-500 hover:bg-red-500/20 hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2 rounded-full text-gray-500 hover:bg-red-500/20 hover:text-red-400 task-button focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       aria-label={`Delete task: ${task.title}`}
                     >
                       <TrashIcon className="h-6 w-6" />

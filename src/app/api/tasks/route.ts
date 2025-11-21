@@ -12,7 +12,20 @@ const getTasks = async (req: AuthenticatedRequest) => {
   try {
     const tasks = await prisma.task.findMany({
       where: { userId: req.userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [
+        // 第一优先级：按完成状态排序（未完成的在前）
+        {
+          completed: 'asc',
+        },
+        // 第二优先级：按状态排序
+        {
+          status: 'asc',
+        },
+        // 第三优先级：按创建时间降序（最新的在前）
+        {
+          createdAt: 'desc',
+        },
+      ],
     });
     return NextResponse.json(tasks);
   } catch (err) {

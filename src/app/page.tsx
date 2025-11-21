@@ -165,15 +165,15 @@ const App: React.FC = () => {
         throw new Error('更新任务状态失败');
       }
 
-      const updatedTask = await response.json();
-      // 响应式更新：只在请求成功后更新UI
-      setTasks(prev =>
-        prev.map(t =>
-          t.id === id
-            ? { ...updatedTask, repetitionFrequency: task.repetitionFrequency }
-            : t
-        )
-      );
+      // 重新获取排序后的任务列表，确保按照新的排序规则显示
+      const tasksResponse = await fetch('/api/tasks');
+      if (!tasksResponse.ok) {
+        throw new Error('获取任务列表失败');
+      }
+      const sortedTasks = await tasksResponse.json();
+      
+      // 更新本地任务列表为排序后的结果
+      setTasks(sortedTasks);
     } catch (err) {
       handleError(err, '切换任务状态失败');
     } finally {

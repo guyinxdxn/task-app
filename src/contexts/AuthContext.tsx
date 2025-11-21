@@ -72,13 +72,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || '登录失败');
+        // 提供更友好的错误消息
+        const errorMessage = data.message || data.error || '登录失败';
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
       setUser(data.user);
     } catch (error) {
       console.error('登录失败:', error);
+      // 重新抛出错误，让调用组件处理
       throw error;
     } finally {
       setIsLoading(false);
