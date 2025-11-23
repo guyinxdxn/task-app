@@ -14,7 +14,12 @@
     "migrate:add": "npx prisma migrate dev --name add-field-or-model",
     "studio": "prisma studio",
     "vercel-build": "node scripts/vercel-build.js",
-    "migrate": "node prisma-oneclick.js"
+    "migrate": "node prisma-oneclick.js",
+    "build:prod": "NODE_ENV=production prisma generate && next build",
+    "build:analyze": "ANALYZE=true next build",
+    "build:clean": "rm -rf .next && pnpm build",
+    "deploy:local": "pnpm build && pnpm start",
+    "deploy:docker": "docker build -t task-app:latest ."
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",

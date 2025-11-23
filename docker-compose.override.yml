@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      args:
+        - NODE_OPTIONS=--max_old_space_size=4096
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - DIRECT_URL=${DIRECT_URL}
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
