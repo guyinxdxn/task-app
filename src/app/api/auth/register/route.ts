@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
     // 设置HTTP-only cookie
     const response = NextResponse.json({
       user: authResponse.user,
+      token: authResponse.token, // 同时返回token给前端
       message: '注册成功',
     });
 

@@ -8,14 +8,27 @@ export interface AuthenticatedRequest extends NextRequest {
 /**
  * 认证中间件
  * 验证JWT token并设置userId到请求对象中
+ * 支持两种认证方式：
+ * 1. Cookie中的token（浏览器环境自动传递）
+ * 2. Authorization header中的Bearer token（移动端或特殊场景）
  */
 export const withAuth = (
   handler: (req: AuthenticatedRequest, ...args: any[]) => Promise<Response>
 ) => {
   return async (req: NextRequest, ...args: any[]) => {
     try {
-      // 从cookie获取token
-      const token = req.cookies.get('token')?.value;
+      let token: string | undefined;
+
+      // 首先尝试从Authorization header获取token
+      const authHeader = req.headers.get('Authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.slice(7);
+      }
+
+      // 如果没有Authorization header，尝试从cookie获取
+      if (!token) {
+        token = req.cookies.get('token')?.value;
+      }
 
       if (!token) {
         return new Response(JSON.stringify({ error: '未授权访问' }), {

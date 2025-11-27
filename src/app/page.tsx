@@ -26,7 +26,7 @@ export interface Task {
 
 const App: React.FC = () => {
   // 认证状态
-  const { user, isLoading: authLoading, logout } = useAuth();
+  const { user, isLoading: authLoading, logout, getAuthHeaders } = useAuth();
   const [isLoginMode, setIsLoginMode] = useState(true);
 
   // 状态管理
@@ -61,7 +61,12 @@ const App: React.FC = () => {
       clearError();
 
       try {
-        const response = await fetch('/api/tasks');
+        const response = await fetch('/api/tasks', {
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders(),
+          },
+        });
         if (!response.ok) {
           throw new Error('Failed to load tasks');
         }
@@ -115,6 +120,7 @@ const App: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders(),
         },
         body: JSON.stringify({
           title: newTaskTitle.trim(),
@@ -155,6 +161,7 @@ const App: React.FC = () => {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders(),
         },
         body: JSON.stringify({
           completed: !task.completed,
@@ -166,7 +173,12 @@ const App: React.FC = () => {
       }
 
       // 重新获取排序后的任务列表，确保按照新的排序规则显示
-      const tasksResponse = await fetch('/api/tasks');
+      const tasksResponse = await fetch('/api/tasks', {
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+      });
       if (!tasksResponse.ok) {
         throw new Error('获取任务列表失败');
       }
@@ -192,6 +204,9 @@ const App: React.FC = () => {
     try {
       const response = await fetch(`/api/tasks/${id}`, {
         method: 'DELETE',
+        headers: {
+          ...getAuthHeaders(),
+        },
       });
 
       if (!response.ok) {
@@ -227,6 +242,7 @@ const App: React.FC = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders(),
         },
         body: JSON.stringify(updates),
       });
@@ -296,7 +312,12 @@ const App: React.FC = () => {
 
     try {
       // 获取当前任务的最新数据，包括当前的totalTimeSpent
-      const response = await fetch(`/api/tasks/${task.id}`);
+      const response = await fetch(`/api/tasks/${task.id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch task data');
       }
@@ -311,6 +332,7 @@ const App: React.FC = () => {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders(),
         },
         body: JSON.stringify({
           totalTimeSpent: newTotalTimeSpent,
