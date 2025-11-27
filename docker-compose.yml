@@ -28,7 +28,7 @@ services:
       - DATABASE_URL=postgresql://postgres:password123@postgres:5432/taskapp
       - DIRECT_URL=postgresql://postgres:password123@postgres:5432/taskapp
       - NODE_ENV=production
-      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_URL=http://43.139.204.176:3000  # ← 改为服务器IP
       - NEXTAUTH_SECRET=DBPy9WQnAQBHX/Y+4tCmR6yjTnAGACyVwCr8bkYibX8=
       - JWT_SECRET=HUGTTSMPv68cKG8CM1p1HSxytn/dWeGhJRf1dOISkAk=
       - JWT_EXPIRES_IN=7d
@@ -45,12 +45,11 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]  # ← 改为 curl
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-
   # 开发环境配置（可选）
   app-dev:
     build:
