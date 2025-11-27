@@ -15,7 +15,7 @@
     "studio": "prisma studio",
     "vercel-build": "node scripts/vercel-build.js",
     "migrate": "node prisma-oneclick.js",
-    "build:prod": "NODE_ENV=production prisma generate && next build",
+    "build:prod": "cross-env NODE_ENV=production prisma generate && next build",
     "build:analyze": "ANALYZE=true next build",
     "build:clean": "rm -rf .next && pnpm build",
     "deploy:local": "pnpm build && pnpm start",

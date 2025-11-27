@@ -16,11 +16,19 @@ RUN npm install -g pnpm@9
 # 安装依赖
 RUN pnpm install --frozen-lockfile
 
-# 复制源代码
+# 复制源代码，保留 .env.production 文件
 COPY . .
+RUN rm -f .env .env.local .env.development
+# 确保 .env.production 文件存在
+RUN if [ -f .env.production ]; then echo "✅ 生产环境变量文件存在"; else echo "⚠️ 生产环境变量文件不存在，将使用docker-compose环境变量"; fi
 
 # 构建阶段
 FROM base AS builder
+
+# 设置构建环境变量
+ENV NODE_ENV=production
+ENV DATABASE_URL=postgresql://postgres:password123@postgres:5432/taskapp
+ENV DIRECT_URL=postgresql://postgres:password123@postgres:5432/taskapp
 
 # 生成 Prisma 客户端
 RUN pnpm prisma generate
@@ -55,6 +63,7 @@ EXPOSE 3000
 # 设置环境变量
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
+ENV NODE_ENV production
 
 # 启动应用
 CMD ["node", "server.js"]

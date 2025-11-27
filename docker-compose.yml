@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL 数据库服务
   postgres:
@@ -27,9 +25,21 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
       - DATABASE_URL=postgresql://postgres:password123@postgres:5432/taskapp
       - DIRECT_URL=postgresql://postgres:password123@postgres:5432/taskapp
+      - NODE_ENV=production
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=DBPy9WQnAQBHX/Y+4tCmR6yjTnAGACyVwCr8bkYibX8=
+      - JWT_SECRET=HUGTTSMPv68cKG8CM1p1HSxytn/dWeGhJRf1dOISkAk=
+      - JWT_EXPIRES_IN=7d
+      - BCRYPT_SALT_ROUNDS=12
+      - NODE_OPTIONS=--max_old_space_size=2048
+      - DEBUG=false
+      - LOG_LEVEL=info
+      - FEATURE_AUTH_ENABLED=true
+      - FEATURE_TASKS_ENABLED=true
+      - FEATURE_POMODORO_ENABLED=true
+      - NEXT_TELEMETRY_DISABLED=1
     depends_on:
       postgres:
         condition: service_healthy
@@ -47,7 +57,9 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "3000:3000"
+      - "3001:3000"
+    env_file:
+      - .env.development
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://postgres:password123@postgres:5432/taskapp
