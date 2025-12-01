@@ -20,6 +20,21 @@ const AuthForm: React.FC<AuthFormProps> = ({
     password: '',
     confirmPassword: '',
   });
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // 组件挂载时从 localStorage 恢复记住的邮箱和密码
+  React.useEffect(() => {
+    const savedEmail = localStorage.getItem('remembered_email');
+    const savedPassword = localStorage.getItem('remembered_password');
+    if (savedEmail && savedPassword) {
+      setFormData(prev => ({
+        ...prev,
+        email: savedEmail,
+        password: savedPassword,
+      }));
+      setRememberMe(true);
+    }
+  }, []);
 
   // 使用错误处理钩子
   const { error, handleError, clearError } = useErrorHandler();
@@ -59,6 +74,14 @@ const AuthForm: React.FC<AuthFormProps> = ({
 
     try {
       if (isLogin) {
+        // 处理记住密码
+        if (rememberMe) {
+          localStorage.setItem('remembered_email', formData.email);
+          localStorage.setItem('remembered_password', formData.password);
+        } else {
+          localStorage.removeItem('remembered_email');
+          localStorage.removeItem('remembered_password');
+        }
         await login(formData.email, formData.password);
       } else {
         await register(formData.email, formData.name, formData.password);
@@ -150,6 +173,22 @@ const AuthForm: React.FC<AuthFormProps> = ({
               </div>
             )}
           </div>
+
+          {isLogin && (
+            <div className="flex items-center">
+              <input
+                id="rememberMe"
+                name="rememberMe"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-cyan-600 focus:ring-cyan-500 focus:ring-offset-gray-800"
+              />
+              <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-400">
+                记住密码
+              </label>
+            </div>
+          )}
 
           <div>
             <button
