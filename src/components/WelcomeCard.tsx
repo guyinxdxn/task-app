@@ -294,7 +294,7 @@ const FullscreenTableEditorModal: React.FC<FullscreenTableEditorModalProps> = ({
   const handleAddColumn = () => {
     setTableData(currentData => {
       if (!currentData) return null;
-      const newHeaderItem = { id: `col-${Date.now()}`, text: 'New Column' };
+      const newHeaderItem = { id: `col-${Date.now()}`, text: '新列' };
       const newHeader = [...currentData.header, newHeaderItem];
       const newRows = currentData.rows.map(row => ({
         ...row,
@@ -357,7 +357,7 @@ const FullscreenTableEditorModal: React.FC<FullscreenTableEditorModalProps> = ({
       >
         <div className="flex-shrink-0 flex justify-between items-center border-b border-slate-600 p-4">
           <h3 className="text-xl font-semibold text-gray-300">
-            Editing Table for:{' '}
+            正在编辑表格：{' '}
             <span className="text-cyan-400 font-bold">{task.title}</span>
           </h3>
           <button
@@ -371,11 +371,11 @@ const FullscreenTableEditorModal: React.FC<FullscreenTableEditorModalProps> = ({
 
         {isLoading ? (
           <div className="flex-grow flex items-center justify-center text-gray-400">
-            Loading table...
+            正在加载表格...
           </div>
         ) : !tableData ? (
           <div className="flex-grow flex items-center justify-center text-red-400 p-8 text-center">
-            Could not parse a valid table from the task&apos;s content.
+            无法从任务内容中解析出有效的表格。
           </div>
         ) : (
           <div className="flex-grow p-4 overflow-y-auto">
@@ -456,7 +456,7 @@ const FullscreenTableEditorModal: React.FC<FullscreenTableEditorModalProps> = ({
                         onClick={handleAddRow}
                         className="w-full px-4 py-2 bg-slate-700/50 hover:bg-slate-700 text-gray-300 font-semibold rounded-lg transition"
                       >
-                        + Add Row
+                        + 添加行
                       </button>
                     </td>
                   </tr>
@@ -471,14 +471,14 @@ const FullscreenTableEditorModal: React.FC<FullscreenTableEditorModalProps> = ({
             onClick={onClose}
             className="px-5 py-2 bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-lg transition"
           >
-            Cancel
+            取消
           </button>
           <button
             onClick={handleSaveChanges}
             disabled={!tableData}
             className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg transition disabled:opacity-50"
           >
-            Save Changes
+            保存更改
           </button>
         </div>
       </div>
@@ -697,14 +697,6 @@ const TaskList: React.FC<TaskListProps> = ({
                     >
                       <EditIcon className="h-6 w-6" />
                     </button>
-                    <button
-                      onClick={() => !isMutating && onDeleteTask(task.id)}
-                      disabled={isMutating}
-                      className="p-2 rounded-full text-gray-500 hover:bg-red-500/20 hover:text-red-400 task-button focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                      aria-label={`Delete task: ${task.title}`}
-                    >
-                      <TrashIcon className="h-6 w-6" />
-                    </button>
                   </div>
                 </li>
               );
@@ -716,6 +708,7 @@ const TaskList: React.FC<TaskListProps> = ({
       <TaskEditModal
         task={editingTask}
         onSave={onUpdateTask}
+        onDelete={onDeleteTask}
         onClose={() => setEditingTask(null)}
         isMutating={isMutating}
       />

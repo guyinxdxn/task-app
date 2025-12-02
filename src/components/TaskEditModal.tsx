@@ -1,6 +1,24 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Task } from '../app/page';
 
+
+const TrashIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+    />
+  </svg>
+);
+
 const FullscreenEnterIcon: React.FC<{ className?: string }> = ({
   className,
 }) => (
@@ -110,6 +128,18 @@ const TaskEditor: React.FC<TaskEditorProps> = ({
 
   const freq = repetitionFrequency || '';
 
+  const handleInsertTable = () => {
+    const tableTemplate = `
+| 标题 1 | 标题 2 | 标题 3 |
+| :--- | :--- | :--- |
+| 内容 1 | 内容 2 | 内容 3 |
+`;
+    const newContent = content.trim()
+      ? `${content}\n${tableTemplate}`
+      : tableTemplate.trim();
+    onContentChange(newContent);
+  };
+
   return (
     <div className="w-full flex flex-col gap-4 h-full">
       <div className="flex-grow flex flex-col gap-4 min-h-0">
@@ -118,7 +148,7 @@ const TaskEditor: React.FC<TaskEditorProps> = ({
             htmlFor="task-title-editor"
             className="block text-sm font-medium text-gray-400 mb-1"
           >
-            Title
+            标题
           </label>
           <input
             id="task-title-editor"
@@ -140,7 +170,7 @@ const TaskEditor: React.FC<TaskEditorProps> = ({
             <ChevronDownIcon
               className={`w-4 h-4 transition-transform duration-300 ${showAdvanced ? 'rotate-180' : ''}`}
             />
-            Advanced Settings
+            高级设置
           </button>
         </div>
 
@@ -150,29 +180,29 @@ const TaskEditor: React.FC<TaskEditorProps> = ({
           <div className="flex flex-col pt-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">
-                Auto-repeat
+                自动重复
               </label>
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => onRepetitionFrequencyChange('')}
                   className={`px-3 py-1.5 text-sm font-semibold rounded-full transition ${freq === '' ? 'bg-cyan-500 text-white' : 'bg-slate-600 hover:bg-slate-500 text-gray-300'}`}
                 >
-                  Off
+                  关闭
                 </button>
                 <button
                   onClick={() => onRepetitionFrequencyChange('1')}
                   className={`px-3 py-1.5 text-sm font-semibold rounded-full transition ${freq === '1' ? 'bg-cyan-500 text-white' : 'bg-slate-600 hover:bg-slate-500 text-gray-300'}`}
                 >
-                  Daily
+                  每天
                 </button>
                 <button
                   onClick={() => onRepetitionFrequencyChange('7')}
                   className={`px-3 py-1.5 text-sm font-semibold rounded-full transition ${freq === '7' ? 'bg-cyan-500 text-white' : 'bg-slate-600 hover:bg-slate-500 text-gray-300'}`}
                 >
-                  Weekly
+                  每周
                 </button>
                 <div className="flex items-center gap-2 text-gray-300">
-                  <span>Every</span>
+                  <span>每</span>
                   <input
                     type="number"
                     value={freq}
@@ -183,7 +213,7 @@ const TaskEditor: React.FC<TaskEditorProps> = ({
                     aria-label="Custom repetition days"
                     className="w-20 bg-gray-900/70 border border-slate-600 rounded-lg p-2 text-white text-center placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition"
                   />
-                  <span>days</span>
+                  <span>天</span>
                 </div>
               </div>
             </div>
@@ -192,14 +222,14 @@ const TaskEditor: React.FC<TaskEditorProps> = ({
                 htmlFor="task-goal-editor"
                 className="block text-sm font-medium text-gray-400 mb-1"
               >
-                Goal & Status (Markdown)
+                目标与状态 (Markdown)
               </label>
               <textarea
                 id="task-goal-editor"
                 value={goal}
                 onChange={e => onGoalChange(e.target.value)}
                 className="w-full h-32 sm:h-48 bg-gray-900/70 border border-slate-600 rounded-lg p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition"
-                placeholder={`Describe the motivation behind your task using Markdown.\n\n### Status\n* Current challenges or situation...\n\n### Goal\n* The desired outcome after completing this task...`}
+                placeholder={`描述这个任务背后的动机 (Markdown)。\n\n### 状态\n* 当前的挑战或情况...\n\n### 目标\n* 完成此任务后的期望结果...`}
                 disabled={isMutating}
               />
             </div>
@@ -207,19 +237,28 @@ const TaskEditor: React.FC<TaskEditorProps> = ({
         </div>
 
         <div className="flex-grow flex flex-col gap-1 min-h-0">
-          <label
-            htmlFor="task-content-editor"
-            className="flex-shrink-0 block text-sm font-medium text-gray-400 mb-1"
-          >
-            Content (Markdown)
-          </label>
+          <div className="flex justify-between items-center flex-shrink-0 mb-1">
+            <label
+              htmlFor="task-content-editor"
+              className="block text-sm font-medium text-gray-400"
+            >
+              内容 (Markdown)
+            </label>
+            <button
+              type="button"
+              onClick={handleInsertTable}
+              className="text-xs bg-slate-700 hover:bg-slate-600 text-cyan-400 px-2 py-1 rounded transition-colors"
+            >
+              插入表格
+            </button>
+          </div>
           <textarea
             id="task-content-editor"
             value={content}
             onChange={e => onContentChange(e.target.value)}
             className="w-full flex-grow resize-y bg-gray-900/70 border border-slate-600 rounded-lg p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition"
             aria-label="Task content editor"
-            placeholder="Describe your task using Markdown...&#10;&#10;| Feature    | Status      |&#10;|------------|-------------|&#10;| Editor     | Implemented |&#10;| Preview    | Live        |"
+            placeholder="使用 Markdown 描述你的任务...&#10;&#10;| 功能 | 状态 |&#10;|---|---|&#10;| 编辑器 | 已实现 |&#10;| 预览 | 在线 |"
             disabled={isMutating}
           />
         </div>
@@ -234,6 +273,7 @@ interface TaskEditModalProps {
     id: string,
     updates: Partial<Omit<Task, 'id' | 'completed'>>
   ) => void;
+  onDelete: (id: string) => void;
   onClose: () => void;
   isMutating: boolean;
 }
@@ -241,6 +281,7 @@ interface TaskEditModalProps {
 const TaskEditModal: React.FC<TaskEditModalProps> = ({
   task,
   onSave,
+  onDelete,
   onClose,
   isMutating,
 }) => {
@@ -302,7 +343,7 @@ const TaskEditModal: React.FC<TaskEditModalProps> = ({
             id="task-editor-heading"
             className="text-lg font-semibold text-gray-300 truncate pr-2"
           >
-            Editing:{' '}
+            正在编辑：{' '}
             <span className="text-cyan-400 font-medium">{task.title}</span>
           </h3>
           <div className="flex items-center gap-2">
@@ -343,20 +384,33 @@ const TaskEditModal: React.FC<TaskEditModalProps> = ({
           />
         </div>
 
-        <div className="flex-shrink-0 flex justify-end gap-3 p-4 border-t border-slate-700">
+        <div className="flex-shrink-0 flex justify-between gap-3 p-4 border-t border-slate-700">
+          <button
+            onClick={() => {
+              onDelete(task.id);
+              onClose();
+            }}
+            disabled={isMutating}
+            className="px-4 py-2 bg-red-600/80 hover:bg-red-500 text-white font-semibold rounded-lg transition disabled:opacity-50 flex items-center gap-2 mr-auto"
+            aria-label="Delete task"
+          >
+            <TrashIcon className="w-5 h-5" />
+            删除
+          </button>
+
           <button
             onClick={onClose}
             disabled={isMutating}
             className="px-5 py-2 bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-lg transition disabled:opacity-50"
           >
-            Cancel
+            取消
           </button>
           <button
             onClick={handleSave}
             className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg transition disabled:opacity-50"
             disabled={!title.trim() || isMutating}
           >
-            {isMutating ? 'Saving...' : 'Save'}
+            {isMutating ? '保存中...' : '保存'}
           </button>
         </div>
       </div>
